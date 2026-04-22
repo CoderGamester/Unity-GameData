@@ -16,8 +16,17 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		public void ValidateAll_ReportsFieldsAndConfigIds()
 		{
+			// ConfigsProvider keys storage by Type, so a singleton and a keyed collection must
+			// live under different types. MockValidatableConfigAlt covers the singleton role
+			// (ConfigId reported as null) and MockValidatableConfig covers the keyed role
+			// (ConfigId reported as the resolver-provided id).
 			var provider = new ConfigsProvider();
-			var invalidSingleton = new MockValidatableConfigBuilder().Invalid().Build();
+			var invalidSingleton = new MockValidatableConfigAlt
+			{
+				Name = "",
+				Health = 150,
+				Tag = "A"
+			};
 			provider.AddSingletonConfig(invalidSingleton);
 
 			var invalidList = new List<MockValidatableConfig>

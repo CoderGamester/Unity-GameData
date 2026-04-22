@@ -193,6 +193,23 @@ namespace GameLovers.GameData.Tests
 	}
 
 	/// <summary>
+	/// Sibling of <see cref="MockValidatableConfig"/> used when a single test needs to register both
+	/// a singleton and a keyed collection of validatable configs through <see cref="ConfigsProvider"/>,
+	/// which keys storage by type and therefore cannot hold both roles for the same <see cref="Type"/>.
+	/// Shares the same attribute surface so validation assertions remain equivalent.
+	/// </summary>
+	[Serializable]
+	public class MockValidatableConfigAlt
+	{
+		[Required]
+		public string Name;
+		[Range(0, 100)]
+		public int Health;
+		[MinLength(3)]
+		public string Tag;
+	}
+
+	/// <summary>
 	/// Config with Unity types for serialization testing.
 	/// </summary>
 	[Serializable]

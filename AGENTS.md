@@ -34,6 +34,7 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 ## 4. Important behaviors / gotchas (keep in sync with code)
 - **Singleton vs id-keyed**: `GetConfig<T>()` only for singleton; use `GetConfig<T>(int)` for id-keyed.
 - **Duplicate keys throw**: `AddSingletonConfig<T>()` / `AddConfigs<T>()` throw on duplicate ids.
+- **One role per type**: `ConfigsProvider._configs` is a `Dictionary<Type, IEnumerable>`. A type `T` can be registered EITHER as a singleton (`AddSingletonConfig<T>`) OR as a keyed collection (`AddConfigs<T>`), never both. Calling the second after the first raises `ArgumentException` from `Dictionary.Add`. When a test or caller genuinely needs both singleton-shaped and collection-shaped validation on the same schema, declare two sibling types (see `MockValidatableConfig` / `MockValidatableConfigAlt` in the test fixtures).
 - **Missing container throws**: `GetConfigsDictionary<T>()` assumes `T` was added.
 - **Versioning is `ulong`**: `ConfigsSerializer.Deserialize` parses `Version` with `ulong.TryParse`; non-numeric strings become `0`.
 - **Security** (see `ConfigsSerializer`, `ConfigTypesBinder`):
