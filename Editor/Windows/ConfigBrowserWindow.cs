@@ -8,7 +8,7 @@ namespace GameLovers.GameData.Editor
 {
 	/// <summary>
 	/// Editor window that provides a unified interface for browsing, validating, and migrating config data.
-	/// Access via <c>Tools/Game Data/Config Browser</c>.
+	/// Access via <c>Tools/GameLovers/Game Data/Config Browser</c>.
 	/// </summary>
 	/// <remarks>
 	/// <para>The Browse tab displays a tree view of all configs in the assigned provider with JSON preview and validation.</para>
@@ -31,7 +31,7 @@ namespace GameLovers.GameData.Editor
 		/// <summary>
 		/// Opens the Config Browser window.
 		/// </summary>
-		[MenuItem("Tools/Game Data/Config Browser")]
+		[MenuItem("Tools/GameLovers/Game Data/Config Browser", priority = 100)]
 		public static void ShowWindow()
 		{
 			var window = GetWindow<ConfigBrowserWindow>("Config Browser");

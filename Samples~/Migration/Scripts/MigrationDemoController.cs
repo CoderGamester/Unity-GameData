@@ -74,7 +74,7 @@ namespace GameLovers.GameData.Samples.Migration
 		private void OpenConfigBrowser()
 		{
 #if UNITY_EDITOR
-			EditorApplication.ExecuteMenuItem("Tools/Game Data/Config Browser");
+			EditorApplication.ExecuteMenuItem("Tools/GameLovers/Game Data/Config Browser");
 #else
 			Debug.Log("Config Browser is only available in the Unity Editor.");
 #endif

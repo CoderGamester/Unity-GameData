@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added `CLAUDE.md` wrapper at the package root that imports `AGENTS.md` for Claude Code integration
 
 **Changes**:
+- Reorganized editor menu items under `Tools/GameLovers/Game Data/...` to align with the GameLovers Services package layout: `Tools/Game Data/Config Browser` → `Tools/GameLovers/Game Data/Config Browser`; `Tools/Game Data/Observable Debugger` → `Tools/GameLovers/Game Data/Observable Debugger`
+- Moved Designer Workflow sample `[CreateAssetMenu]` paths from `GameData Samples/Designer Workflow/...` to `GameLovers GameData Samples/Designer Workflow/...` (`LootTableAsset`, `GameSettingsAsset`, `EnemyConfigsAsset`)
 - Improved the  `README.md` and `AGENTS.md`documentation
 
 **Fixes**:

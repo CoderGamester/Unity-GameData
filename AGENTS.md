@@ -53,8 +53,8 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 - **No manual `.meta` edits**: Unity owns `*.meta` generation.
 
 ## 5. Editor tools (menu paths)
-- **Config Browser**: `Tools > Game Data > Config Browser` (browse/validate/export/migrations)
-- **Observable Debugger**: `Tools > Game Data > Observable Debugger` (inspect live observables)
+- **Config Browser**: `Tools > GameLovers > Game Data > Config Browser` (browse/validate/export/migrations)
+- **Observable Debugger**: `Tools > GameLovers > Game Data > Observable Debugger` (inspect live observables)
 - **Config migrations**: shown inside Config Browser when migrations exist
 
 ## 6. Tests (how to run / where to add)

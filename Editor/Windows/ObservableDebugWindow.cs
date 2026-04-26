@@ -12,7 +12,7 @@ namespace GameLovers.GameData.Editor
 {
 	/// <summary>
 	/// Editor window that displays all active observable instances tracked by <see cref="ObservableDebugRegistry"/>.
-	/// Access via <c>Tools/Game Data/Observable Debugger</c>.
+	/// Access via <c>Tools/GameLovers/Game Data/Observable Debugger</c>.
 	/// </summary>
 	/// <remarks>
 	/// <para>Observables automatically register themselves when constructed in the editor via the self-registration pattern.</para>
@@ -43,7 +43,7 @@ namespace GameLovers.GameData.Editor
 		/// <summary>
 		/// Opens the Observable Debugger window.
 		/// </summary>
-		[MenuItem("Tools/Game Data/Observable Debugger")]
+		[MenuItem("Tools/GameLovers/Game Data/Observable Debugger", priority = 200)]
 		public static void ShowWindow()
 		{
 			var window = GetWindow<ObservableDebugWindow>("Observable Debugger");
