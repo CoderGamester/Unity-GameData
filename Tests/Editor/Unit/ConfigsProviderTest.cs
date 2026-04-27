@@ -214,5 +214,36 @@ namespace GameLovers.GameData.Tests
 			Assert.IsTrue(all.ContainsKey(typeof(MockSingletonConfig)));
 			Assert.IsTrue(all.ContainsKey(typeof(MockCollectionConfig)));
 		}
+
+		[Test]
+		public void AddAllConfigs_BulkPayload_RegistersAllTypes()
+		{
+			var singletonContainer = new Dictionary<int, MockSingletonConfig>
+			{
+				{ 0, new MockSingletonConfig { Value = 7 } }
+			};
+			var collectionContainer = new Dictionary<int, MockCollectionConfig>
+			{
+				{ 1, new MockCollectionConfig { Id = 1, Name = "One" } },
+				{ 2, new MockCollectionConfig { Id = 2, Name = "Two" } }
+			};
+			var payload = new Dictionary<Type, System.Collections.IEnumerable>
+			{
+				{ typeof(MockSingletonConfig), singletonContainer },
+				{ typeof(MockCollectionConfig), collectionContainer }
+			};
+
+			_provider.AddAllConfigs(payload);
+
+			Assert.AreEqual(7, _provider.GetConfig<MockSingletonConfig>().Value);
+			Assert.AreEqual("One", _provider.GetConfig<MockCollectionConfig>(1).Name);
+			Assert.AreEqual("Two", _provider.GetConfig<MockCollectionConfig>(2).Name);
+			Assert.AreEqual(2, _provider.GetConfigsList<MockCollectionConfig>().Count);
+
+			var all = _provider.GetAllConfigs();
+			Assert.AreEqual(2, all.Count);
+			Assert.IsTrue(all.ContainsKey(typeof(MockSingletonConfig)));
+			Assert.IsTrue(all.ContainsKey(typeof(MockCollectionConfig)));
+		}
 	}
 }
