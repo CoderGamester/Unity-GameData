@@ -43,5 +43,14 @@ namespace GameLovers.GameData
 				_valueData.Add(item.Value);
 			}
 		}
+
+		internal List<TKey> KeyDataInternal => _keyData;
+		internal List<TValue> ValueDataInternal => _valueData;
+
+		internal void SetSerializedLists(List<TKey> keys, List<TValue> values)
+		{
+			_keyData = keys;
+			_valueData = values;
+		}
 	}
 }

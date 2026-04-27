@@ -66,13 +66,9 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		public void OnAfterDeserialize_OverwritesDuplicateKeys()
 		{
-			// Manual setup of internal lists to simulate Unity serialization
-			var type = typeof(UnitySerializedDictionary<string, int>);
-			var keysField = type.GetField("_keyData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var valuesField = type.GetField("_valueData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-			keysField.SetValue(_dictionary, new List<string> { "key", "key" });
-			valuesField.SetValue(_dictionary, new List<int> { 1, 2 });
+			// Simulate Unity deserialization (the YAML serializer populates the backing lists,
+			// then ISerializationCallbackReceiver.OnAfterDeserialize folds them into the dict).
+			_dictionary.SetSerializedLists(new List<string> { "key", "key" }, new List<int> { 1, 2 });
 
 			((ISerializationCallbackReceiver)_dictionary).OnAfterDeserialize();
 
@@ -88,12 +84,8 @@ namespace GameLovers.GameData.Tests
 
 			((ISerializationCallbackReceiver)_dictionary).OnBeforeSerialize();
 
-			var type = typeof(UnitySerializedDictionary<string, int>);
-			var keysField = type.GetField("_keyData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var valuesField = type.GetField("_valueData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-			var keys = (List<string>)keysField.GetValue(_dictionary);
-			var values = (List<int>)valuesField.GetValue(_dictionary);
+			var keys = _dictionary.KeyDataInternal;
+			var values = _dictionary.ValueDataInternal;
 
 			Assert.AreEqual(2, keys.Count);
 			Assert.Contains("key1", keys);

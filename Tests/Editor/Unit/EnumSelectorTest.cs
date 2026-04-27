@@ -62,11 +62,8 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		public void GetSelection_InvalidSelection_ReturnsFirstValue()
 		{
-			var type = typeof(EnumSelector<EnumExample>);
-			var field = type.GetField("_selection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			field.SetValue(_enumSelector, "InvalidValue");
+			_enumSelector.SetSelectionString("InvalidValue");
 
-			// Expect the error log when trying to get the invalid selection
 			LogAssert.Expect(LogType.Error, "Could not load enum for string: InvalidValue");
 
 			// EnumSelector returns the first enum value when selection is invalid
@@ -76,11 +73,8 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		public void HasValidSelection_RemovedEnumValue_ReturnsFalse()
 		{
-			var type = typeof(EnumSelector<EnumExample>);
-			var field = type.GetField("_selection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			field.SetValue(_enumSelector, "NonExistentValue");
+			_enumSelector.SetSelectionString("NonExistentValue");
 
-			// Expect the error log from GetSelectedIndex
 			LogAssert.Expect(LogType.Error, "Could not load enum for string: NonExistentValue");
 
 			Assert.IsFalse(_enumSelector.HasValidSelection());
@@ -89,11 +83,8 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		public void HasValidSelection_EmptyString_ReturnsFalse()
 		{
-			var type = typeof(EnumSelector<EnumExample>);
-			var field = type.GetField("_selection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			field.SetValue(_enumSelector, "");
+			_enumSelector.SetSelectionString("");
 
-			// Expect the error log from GetSelectedIndex
 			LogAssert.Expect(LogType.Error, "Could not load enum for string: ");
 
 			Assert.IsFalse(_enumSelector.HasValidSelection());

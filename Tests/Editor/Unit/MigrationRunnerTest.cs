@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using GameLovers.GameData;
 using GameLoversEditor.GameData;
 using Newtonsoft.Json.Linq;
@@ -16,6 +15,31 @@ namespace GameLovers.GameData.Tests
 		{
 			public int Value;
 			public string NewField;
+		}
+
+		[Serializable]
+		public class MockStats
+		{
+			public int DamageReduction;
+			public int CritChance;
+		}
+
+		[Serializable]
+		public class MockComplexConfig
+		{
+			public int Id;
+			public string Name;
+			public int AttackDamage;
+			public string ArmorType;
+			public int BaseHealth;
+			public int BonusHealth;
+			public MockStats Stats;
+			public string[] Abilities;
+		}
+
+		public class MockScriptableConfig : ScriptableObject
+		{
+			public int Value;
 		}
 
 		[ConfigMigration(typeof(MockConfig))]
@@ -38,67 +62,6 @@ namespace GameLovers.GameData.Tests
 			{
 				configJson["NewField"] = "Migrated";
 			}
-		}
-
-		[SetUp]
-		public void Setup()
-		{
-			MigrationRunner.Initialize(force: true);
-		}
-
-		[Test]
-		public void GetConfigTypesWithMigrations_ReturnsCorrectTypes()
-		{
-			var types = MigrationRunner.GetConfigTypesWithMigrations();
-			Assert.Contains(typeof(MockConfig), (System.Collections.ICollection)types);
-		}
-
-		[Test]
-		public void GetAvailableMigrations_ReturnsOrderedMigrations()
-		{
-			var migrations = MigrationRunner.GetAvailableMigrations<MockConfig>();
-			Assert.AreEqual(2, migrations.Count);
-			Assert.AreEqual(1, (int)migrations[0].FromVersion);
-			Assert.AreEqual(2, (int)migrations[1].FromVersion);
-		}
-
-		[Test]
-		public void Migrate_AppliesSequentialMigrations()
-		{
-			var json = new JObject { ["Value"] = 5 };
-			var count = MigrationRunner.Migrate(typeof(MockConfig), json, 1, 3);
-			
-			Assert.AreEqual(2, count);
-			Assert.AreEqual(15, (int)json["Value"]);
-			Assert.AreEqual("Migrated", (string)json["NewField"]);
-		}
-
-		[Test]
-		public void GetLatestVersion_ReturnsCorrectVersion()
-		{
-			Assert.AreEqual(3, (int)MigrationRunner.GetLatestVersion(typeof(MockConfig)));
-		}
-
-		#region Complex Migration Tests
-
-		[Serializable]
-		public class MockComplexConfig
-		{
-			public int Id;
-			public string Name;
-			public int AttackDamage;
-			public string ArmorType;
-			public int BaseHealth;
-			public int BonusHealth;
-			public MockStats Stats;
-			public string[] Abilities;
-		}
-
-		[Serializable]
-		public class MockStats
-		{
-			public int DamageReduction;
-			public int CritChance;
 		}
 
 		[ConfigMigration(typeof(MockComplexConfig))]
@@ -141,6 +104,56 @@ namespace GameLovers.GameData.Tests
 				// Add empty array
 				configJson["Abilities"] = new JArray();
 			}
+		}
+
+		[ConfigMigration(typeof(MockScriptableConfig))]
+		public class MockScriptable_v1_v2 : IConfigMigration
+		{
+			public ulong FromVersion => 1;
+			public ulong ToVersion => 2;
+			public void Migrate(JObject configJson)
+			{
+				configJson["Value"] = (int)configJson["Value"] + 10;
+			}
+		}
+
+		[SetUp]
+		public void Setup()
+		{
+			MigrationRunner.Initialize(force: true);
+		}
+
+		[Test]
+		public void GetConfigTypesWithMigrations_ReturnsCorrectTypes()
+		{
+			var types = MigrationRunner.GetConfigTypesWithMigrations();
+			Assert.Contains(typeof(MockConfig), (System.Collections.ICollection)types);
+		}
+
+		[Test]
+		public void GetAvailableMigrations_ReturnsOrderedMigrations()
+		{
+			var migrations = MigrationRunner.GetAvailableMigrations<MockConfig>();
+			Assert.AreEqual(2, migrations.Count);
+			Assert.AreEqual(1, (int)migrations[0].FromVersion);
+			Assert.AreEqual(2, (int)migrations[1].FromVersion);
+		}
+
+		[Test]
+		public void GetLatestVersion_ReturnsCorrectVersion()
+		{
+			Assert.AreEqual(3, (int)MigrationRunner.GetLatestVersion(typeof(MockConfig)));
+		}
+
+		[Test]
+		public void Migrate_AppliesSequentialMigrations()
+		{
+			var json = new JObject { ["Value"] = 5 };
+			var count = MigrationRunner.Migrate(typeof(MockConfig), json, 1, 3);
+
+			Assert.AreEqual(2, count);
+			Assert.AreEqual(15, (int)json["Value"]);
+			Assert.AreEqual("Migrated", (string)json["NewField"]);
 		}
 
 		[Test]
@@ -206,6 +219,46 @@ namespace GameLovers.GameData.Tests
 			Assert.AreEqual(0, ((JArray)json["Abilities"]).Count);
 		}
 
-		#endregion
+		[Test]
+		public void MigrateScriptableObject_AppliesMigrations_UpdatesObject()
+		{
+			var so = ScriptableObject.CreateInstance<MockScriptableConfig>();
+			try
+			{
+				so.Value = 5;
+
+				var result = MigrationRunner.MigrateScriptableObject(
+					so, typeof(MockScriptableConfig), fromVersion: 1, toVersion: 2);
+
+				Assert.IsTrue(result.Success);
+				Assert.AreEqual(1, result.MigrationsApplied);
+				Assert.AreEqual(15, so.Value);
+			}
+			finally
+			{
+				ScriptableObject.DestroyImmediate(so);
+			}
+		}
+
+		[Test]
+		public void MigrateScriptableObject_FromAtOrAboveTo_ReturnsNoMigrations()
+		{
+			var so = ScriptableObject.CreateInstance<MockScriptableConfig>();
+			try
+			{
+				so.Value = 5;
+
+				var result = MigrationRunner.MigrateScriptableObject(
+					so, typeof(MockScriptableConfig), fromVersion: 5, toVersion: 5);
+
+				Assert.IsTrue(result.Success);
+				Assert.AreEqual(0, result.MigrationsApplied);
+				Assert.AreEqual(5, so.Value);
+			}
+			finally
+			{
+				ScriptableObject.DestroyImmediate(so);
+			}
+		}
 	}
 }

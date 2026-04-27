@@ -112,5 +112,10 @@ namespace GameLovers.GameData
 		{
 			return d.GetSelection();
 		}
+
+		internal void SetSelectionString(string serializedName)
+		{
+			_selection = serializedName;
+		}
 	}
 }

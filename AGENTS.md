@@ -50,6 +50,7 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 - **ObservableDictionary update flags**: update flags change which subscribers are notified (key-only vs global vs both).
 - **Missing key calls can throw**: methods that target a specific key generally assume the key exists.
 - **EnumSelector stability**: check validity (`HasValidSelection`) if enums were changed/renamed.
+- **`SerializableType<T>` struct-boxing pattern**: `OnAfterDeserialize` body lives in private `OnAfterDeserializeImpl()`; the explicit `ISerializationCallbackReceiver.OnAfterDeserialize()` delegates to it. Reason: calling `((ISerializationCallbackReceiver)structInstance).OnAfterDeserialize()` boxes the struct, and any mutation to `_value` happens on the box — invisible to the caller. The test factory `FromSerializedNames` mutates `this` in-place via `OnAfterDeserializeImpl()` to dodge this. Do **not** collapse `OnAfterDeserializeImpl` back into the interface implementation.
 - **No manual `.meta` edits**: Unity owns `*.meta` generation.
 
 ## 5. Editor tools (menu paths)
@@ -64,6 +65,11 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
   - `Security/` for serializer safety expectations
   - `Performance/` only when measuring allocations/hot paths
 - **PlayMode** tests: Unity Test Runner → PlayMode (tests live under `Tests/PlayMode/*`) — use for tests that require a running scene or async UniTask flows
+- **Internal test seams** (`Runtime/AssemblyInfo.cs` declares `[InternalsVisibleTo("GameLovers.GameData.Editor.Tests")]`): use these instead of `BindingFlags.NonPublic` reflection on private fields.
+  - `EnumSelector<T>.SetSelectionString(string)` — simulates a stale serialized enum-name string that the public `SetSelection(T)` API can't reach (since `T` is constrained to valid enum members).
+  - `SerializableType<T>.FromSerializedNames(className, assemblyName)` — static factory that simulates Unity's deserialization order (private serialized fields populated, then `OnAfterDeserializeImpl` resolves) without reflection or struct-boxing dance.
+  - `UnitySerializedDictionary<TKey,TValue>.SetSerializedLists(List<TKey>, List<TValue>)` + read-only `KeyDataInternal` / `ValueDataInternal` — read/write the YAML-serializer-populated backing lists.
+- **`ConfigsProvider.AddAllConfigs` / `UpdateTo` test signature**: both take `IReadOnlyDictionary<Type, IEnumerable>` requiring **non-generic** `System.Collections.IEnumerable`. When the test file imports `System.Collections.Generic`, fully-qualify `System.Collections.IEnumerable` to avoid resolution clash with `IEnumerable<T>` (existing `UpdateTo_*` test in `ConfigsProviderTest.cs` demonstrates this).
 
 ## 7. Common change workflows
 - **Add config type**: `[Serializable]` (or `[IgnoreServerSerialization]`), decide singleton vs id-keyed, add tests.

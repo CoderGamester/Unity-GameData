@@ -111,6 +111,11 @@ namespace GameLovers.GameData
 		/// </summary>
 		void ISerializationCallbackReceiver.OnAfterDeserialize()
 		{
+			OnAfterDeserializeImpl();
+		}
+
+		private void OnAfterDeserializeImpl()
+		{
 			try
 			{
 				if (string.IsNullOrEmpty(_assemblyName) || string.IsNullOrEmpty(_className))
@@ -141,6 +146,15 @@ namespace GameLovers.GameData
 			{
 				Debug.LogException(e);
 			}
+		}
+
+		internal static SerializableType<T> FromSerializedNames(string className, string assemblyName)
+		{
+			var st = new SerializableType<T>();
+			st._className = className;
+			st._assemblyName = assemblyName;
+			st.OnAfterDeserializeImpl();
+			return st;
 		}
 	}
 }

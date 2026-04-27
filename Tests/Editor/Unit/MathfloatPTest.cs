@@ -225,10 +225,6 @@ namespace GameLovers.GameData.Tests
 			Assert.AreEqual(raw1, raw2);
 		}
 
-		// ══════════════════════════════════════════════════════════════
-		// Extended Tests for 50+ coverage per plan
-		// ══════════════════════════════════════════════════════════════
-
 		#region Trigonometry Extended Tests
 
 		[Test]
@@ -557,6 +553,89 @@ namespace GameLovers.GameData.Tests
 		{
 			Assert.AreEqual((floatP)0f, MathfloatP.SmoothStep((floatP)0f, (floatP)10f, (floatP)(-0.5f)));
 			Assert.AreEqual((floatP)10f, MathfloatP.SmoothStep((floatP)0f, (floatP)10f, (floatP)1.5f));
+		}
+
+		#endregion
+
+		#region Audit follow-up: untested-API stubs (Medium confidence)
+
+		[Test]
+		public void DivRem_KnownPair_ReturnsExpectedRemainderAndQuotient()
+		{
+			// 7 / 3 = 2 remainder 1
+			MathfloatP.DivRem((floatP)7f, (floatP)3f, out var rem, out var quo);
+			Assert.AreEqual(2, quo);
+			Assert.AreEqual(1f, (float)rem, _epsilon);
+
+			// x = 0: remainder = x, quotient = 0
+			MathfloatP.DivRem(floatP.Zero, (floatP)3f, out var rem0, out var quo0);
+			Assert.AreEqual(0, quo0);
+			Assert.AreEqual(0f, (float)rem0, _epsilon);
+
+			// y = 0: NaN remainder, quotient = 0
+			MathfloatP.DivRem((floatP)5f, floatP.Zero, out var remNaN, out var quoNaN);
+			Assert.AreEqual(0, quoNaN);
+			Assert.IsTrue(remNaN.IsNaN());
+		}
+
+		[Test]
+		public void IEEERemainder_KnownPair_MatchesDivRemRemainder()
+		{
+			var rem = MathfloatP.IEEERemainder((floatP)7f, (floatP)3f);
+			Assert.AreEqual(1f, (float)rem, _epsilon);
+
+			MathfloatP.DivRem((floatP)7f, (floatP)3f, out var divRemRem, out _);
+			Assert.AreEqual(divRemRem.RawValue, rem.RawValue);
+		}
+
+		[Test]
+		public void Mod_KnownPair_ReturnsExpectedRemainder()
+		{
+			Assert.AreEqual(1f, (float)MathfloatP.Mod((floatP)10f, (floatP)3f), _epsilon);
+			Assert.AreEqual(0f, (float)MathfloatP.Mod((floatP)10f, (floatP)5f), _epsilon);
+
+			// |x| < |y|: returns x unchanged
+			Assert.AreEqual(((floatP)2f).RawValue, MathfloatP.Mod((floatP)2f, (floatP)5f).RawValue);
+
+			// Divide-by-zero: NaN
+			Assert.IsTrue(MathfloatP.Mod((floatP)5f, floatP.Zero).IsNaN());
+		}
+
+		[Test]
+		public void LogTwoArg_BaseAndDomain_HandlesSpecialCases()
+		{
+			// Log(8, 2) ≈ 3
+			Assert.AreEqual(3f, (float)MathfloatP.Log((floatP)8f, (floatP)2f), 0.01f);
+
+			// Log(x, 1) → NaN
+			Assert.IsTrue(MathfloatP.Log((floatP)5f, (floatP)1f).IsNaN());
+
+			// Log(x != 1, 0) → NaN
+			Assert.IsTrue(MathfloatP.Log((floatP)5f, floatP.Zero).IsNaN());
+
+			// NaN x preserved
+			Assert.IsTrue(MathfloatP.Log(floatP.NaN, (floatP)2f).IsNaN());
+
+			// NaN base preserved
+			Assert.IsTrue(MathfloatP.Log((floatP)5f, floatP.NaN).IsNaN());
+		}
+
+		[Test]
+		public void RawDistance_FiniteAndInfinite_ReturnsExpected()
+		{
+			// Same value → 0
+			Assert.AreEqual(0L, MathfloatP.RawDistance((floatP)1f, (floatP)1f));
+
+			// Adjacent floatPs → 1
+			var oneRaw = ((floatP)1f).RawValue;
+			var nextAfterOne = floatP.FromIeeeRaw(oneRaw + 1u);
+			Assert.AreEqual(1L, MathfloatP.RawDistance((floatP)1f, nextAfterOne));
+
+			// Equal infinities → 0
+			Assert.AreEqual(0L, MathfloatP.RawDistance(floatP.PositiveInfinity, floatP.PositiveInfinity));
+
+			// Mixed finite + infinity → long.MaxValue
+			Assert.AreEqual(long.MaxValue, MathfloatP.RawDistance((floatP)1f, floatP.PositiveInfinity));
 		}
 
 		#endregion

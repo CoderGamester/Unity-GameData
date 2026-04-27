@@ -18,22 +18,11 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		public void Value_Property_ResolvesCorrectly()
 		{
-			var st = new SerializableType<object>();
-			// Set the private fields to simulate deserialization
-			var type = typeof(SerializableType<object>);
-			var classNameField = type.GetField("_className", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var assemblyNameField = type.GetField("_assemblyName", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			
-			object boxed = st;
-			classNameField.SetValue(boxed, typeof(string).FullName);
-			assemblyNameField.SetValue(boxed, typeof(string).Assembly.FullName);
-			
-			// Trigger OnAfterDeserialize on the same boxed instance (struct boxing semantics!)
-			((ISerializationCallbackReceiver)boxed).OnAfterDeserialize();
-			
-			// Now unbox the modified struct
-			st = (SerializableType<object>)boxed;
-			
+			// Simulate Unity deserialization (private serialized fields populated, then
+			// OnAfterDeserialize resolves them) via the internal test seam — no reflection,
+			// no struct-boxing dance.
+			var st = SerializableType<object>.FromSerializedNames(typeof(string).FullName, typeof(string).Assembly.FullName);
+
 			Assert.AreEqual(typeof(string), st.Value);
 		}
 

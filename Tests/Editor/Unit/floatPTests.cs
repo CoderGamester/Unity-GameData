@@ -130,5 +130,45 @@ namespace GameLovers.GameData.Tests
 			Assert.IsTrue((floatP.PositiveInfinity * floatP.PositiveInfinity).IsPositiveInfinity());
 			Assert.IsTrue((floatP.PositiveInfinity / floatP.One).IsPositiveInfinity());
 		}
+
+		[Test]
+		public void FromParts_RoundTrip_ReconstructsRawValue()
+		{
+			// IEEE binary32 "+1.0": sign=false, biased exponent=127, mantissa=0
+			Assert.AreEqual(0x3F800000u, floatP.FromParts(false, 127, 0).RawValue);
+
+			// IEEE binary32 "-2.5": sign=true, biased exponent=128, mantissa=0x200000
+			var negTwoAndAHalf = floatP.FromParts(true, 128, 0x200000);
+			Assert.AreEqual(0xC0200000u, negTwoAndAHalf.RawValue);
+			Assert.AreEqual(-2.5f, (float)negTwoAndAHalf, 0.0001f);
+		}
+
+		[Test]
+		public void IeeeRaw_RoundTrip_PreservesValue()
+		{
+			var values = new[]
+			{
+				floatP.Zero, floatP.One, floatP.MinusOne,
+				(floatP)1.234f, (floatP)(-9876.5f),
+				floatP.NaN, floatP.PositiveInfinity, floatP.NegativeInfinity,
+				floatP.MaxValue, floatP.MinValue, floatP.Epsilon
+			};
+			foreach (var f in values)
+			{
+				var roundTripped = floatP.FromIeeeRaw(f.ToIeeeRaw());
+				Assert.AreEqual(f.RawValue, roundTripped.RawValue);
+			}
+		}
+
+		[Test]
+		public void Sign_NaNArgument_Throws()
+		{
+			Assert.Throws<System.ArithmeticException>(() => floatP.Sign(floatP.NaN));
+
+			Assert.AreEqual(1, floatP.Sign((floatP)5f));
+			Assert.AreEqual(-1, floatP.Sign((floatP)(-5f)));
+			Assert.AreEqual(0, floatP.Sign(floatP.Zero));
+			Assert.AreEqual(0, floatP.Sign(-floatP.Zero));
+		}
 	}
 }
