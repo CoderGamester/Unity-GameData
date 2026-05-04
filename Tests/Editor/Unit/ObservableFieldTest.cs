@@ -288,5 +288,15 @@ namespace GameLovers.GameData.Tests
 			// ComputedField should be dirty now and recompute on next access
 			Assert.AreEqual(10, computed.Value);
 		}
+
+		[Test]
+		public void ResolverField_ImplicitConversionToT_ReturnsCurrentValue()
+		{
+			_mockInt = 42;
+
+			int implicitlyConverted = _observableResolverField;
+
+			Assert.AreEqual(_mockInt, implicitlyConverted);
+		}
 	}
 }

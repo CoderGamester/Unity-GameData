@@ -161,6 +161,16 @@ namespace GameLovers.GameData.Tests
 			Assert.AreEqual(floatP.One, MathfloatP.Pow((floatP)10f, floatP.Zero));
 		}
 
+		[TestCase(0f, 0f)]
+		[TestCase(1f, 1f)]
+		[TestCase(2f, 4f)]
+		[TestCase(10f, 100f)]
+		[TestCase(-2f, 4f)]
+		public void Pow2_KnownInputs_ReturnsSquare(float input, float expected)
+		{
+			Assert.AreEqual(expected, (float)MathfloatP.Pow2((floatP)input), _epsilon);
+		}
+
 		[Test]
 		public void Exp_Works()
 		{

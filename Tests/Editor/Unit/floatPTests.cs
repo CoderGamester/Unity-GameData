@@ -170,5 +170,23 @@ namespace GameLovers.GameData.Tests
 			Assert.AreEqual(0, floatP.Sign(floatP.Zero));
 			Assert.AreEqual(0, floatP.Sign(-floatP.Zero));
 		}
+
+		[Test]
+		public void StaticOverloads_IsInfinity_IsNegativeInfinity_IsNaN_IsFinite_MatchInstanceForms()
+		{
+			var samples = new[]
+			{
+				floatP.PositiveInfinity, floatP.NegativeInfinity, floatP.NaN,
+				floatP.Zero, floatP.One, (floatP)1.234f
+			};
+
+			foreach (var f in samples)
+			{
+				Assert.AreEqual(f.IsInfinity(), floatP.IsInfinity(f));
+				Assert.AreEqual(f.IsNegativeInfinity(), floatP.IsNegativeInfinity(f));
+				Assert.AreEqual(f.IsNaN(), floatP.IsNaN(f));
+				Assert.AreEqual(f.IsFinite(), floatP.IsFinite(f));
+			}
+		}
 	}
 }

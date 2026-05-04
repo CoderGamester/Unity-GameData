@@ -117,6 +117,22 @@ namespace GameLovers.GameData.Tests
 			}
 		}
 
+		public class MockThrowingScriptableConfig : ScriptableObject
+		{
+			public int Value;
+		}
+
+		[ConfigMigration(typeof(MockThrowingScriptableConfig))]
+		public class MockThrowingMigration_v1_v2 : IConfigMigration
+		{
+			public ulong FromVersion => 1;
+			public ulong ToVersion => 2;
+			public void Migrate(JObject configJson)
+			{
+				throw new InvalidOperationException("simulated migration failure");
+			}
+		}
+
 		[SetUp]
 		public void Setup()
 		{
@@ -254,6 +270,28 @@ namespace GameLovers.GameData.Tests
 				Assert.IsTrue(result.Success);
 				Assert.AreEqual(0, result.MigrationsApplied);
 				Assert.AreEqual(5, so.Value);
+			}
+			finally
+			{
+				ScriptableObject.DestroyImmediate(so);
+			}
+		}
+
+		[Test]
+		public void MigrateScriptableObject_MigrationThrows_ReturnsErrorResult()
+		{
+			var so = ScriptableObject.CreateInstance<MockThrowingScriptableConfig>();
+			try
+			{
+				so.Value = 5;
+
+				var result = MigrationRunner.MigrateScriptableObject(
+					so, typeof(MockThrowingScriptableConfig), fromVersion: 1, toVersion: 2);
+
+				Assert.IsFalse(result.Success);
+				Assert.IsNotNull(result.Message);
+				StringAssert.Contains("simulated migration failure", result.Message);
+				Assert.AreEqual(0, result.MigrationsApplied);
 			}
 			finally
 			{

@@ -2,7 +2,7 @@
   "name": "com.gamelovers.gamedata",
   "displayName": "GameLovers GameData",
   "author": "Miguel Tomas",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "unity": "6000.0",
   "license": "MIT",
   "description": "Core data utilities and configuration management for Unity games. Includes observable data types (fields, lists, dictionaries), deterministic floats (floatP), serialization helpers, type-safe config storage, versioning, and backend sync support.",

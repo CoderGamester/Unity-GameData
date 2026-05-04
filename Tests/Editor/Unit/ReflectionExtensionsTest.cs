@@ -40,5 +40,28 @@ namespace GameLovers.GameData.Tests
 			Assert.IsInstanceOf<PrivateCtorClass>(obj);
 			Assert.AreEqual(99, ((PrivateCtorClass)obj).Value);
 		}
+
+		public class BaseWithField
+		{
+#pragma warning disable CS0414 // field accessed via reflection by FindFieldByName
+			private int _baseField = 7;
+#pragma warning restore CS0414
+		}
+
+		public class DerivedNoField : BaseWithField
+		{
+		}
+
+		[Test]
+		public void FindFieldByName_OnDerivedType_WalksBaseTypeChain()
+		{
+			var first = typeof(DerivedNoField).FindFieldByName("_baseField");
+			var second = typeof(DerivedNoField).FindFieldByName("_baseField");
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("_baseField", first.Name);
+			Assert.AreEqual(typeof(BaseWithField), first.DeclaringType);
+			Assert.AreSame(first, second);
+		}
 	}
 }

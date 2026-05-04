@@ -57,5 +57,14 @@ namespace GameLovers.GameData.Tests
 			Type t = st;
 			Assert.AreEqual(typeof(int), t);
 		}
+
+		[Test]
+		public void Equals_IEquatableType_SameRuntimeType_ReturnsTrue_DifferentType_ReturnsFalse()
+		{
+			var st = new SerializableType<int>();
+
+			Assert.IsTrue(st.Equals(typeof(int)));
+			Assert.IsFalse(st.Equals(typeof(string)));
+		}
 	}
 }
