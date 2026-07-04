@@ -7,19 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.0.3] - 2026-05-04
 
 **New**:
-- Added `Tests/Editor/Unit/ConfigTypesBinderTest.cs` covering `ConfigTypesBinder.AddAllowedType`, `BindToType` (whitelisted + unregistered-type throw paths), `BindToName` round-trip, and `FromProvider` provider-driven whitelist population
-- Added `Tests/Editor/Unit/ValueDataConversionTest.cs` covering `Vector2/3/4/3Int/2IntSerializable` and `Quaternion ↔ Vector4Serializable` implicit-conversion round-trips
-- Added `Tests/Editor/Unit/ConfigBrowser/ConfigExportServiceTests.cs` covering full-provider JSON export with singleton + collection configs
-- Added `Tests/Editor/Unit/ObjectExtensionsTest.cs` covering `IsValid`/`GetValid`/`TryGetValid` on plain C# references and `GetDisplayString` for generic types (including cache-hit path)
-- Extended `MigrationRunnerTest.cs` with `MigrateScriptableObject_MigrationThrows_ReturnsErrorResult` (closes the P0 error branch on the `MigrateScriptableObject<T>` command)
-- Extended `SerializableTypeTest.cs` with the `Equals(Type)` `IEquatable<Type>` overload coverage
-- Extended `MathfloatPTest.cs` with `Pow2_KnownInputs_ReturnsSquare` (parameterized; locks `Pow2(f) = f²` semantics)
-- Extended `floatPTests.cs` with `StaticOverloads_*_MatchInstanceForms` covering `floatP.IsInfinity` / `IsNegativeInfinity` / `IsNaN` / `IsFinite` static overloads against their instance siblings
-- Extended `ReflectionExtensionsTest.cs` with `FindFieldByName_OnDerivedType_WalksBaseTypeChain` (covers BaseType walk + memoization)
-- Extended `ObservableFieldTest.cs` with `ResolverField_ImplicitConversionToT_ReturnsCurrentValue` (covers `op_Implicit` operator)
-
-**Changes**:
-- `.audit-history.md` is now gitignored (local developer state for the `unity-tests-audit` skill — never committed)
+- Added new test suite for more rebust code coverage
 
 ---
 
