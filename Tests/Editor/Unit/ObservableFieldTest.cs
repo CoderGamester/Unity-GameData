@@ -23,6 +23,9 @@ namespace GameLovers.GameData.Tests
 		[SetUp]
 		public void Init()
 		{
+			// Reset before constructing: NUnit reuses one fixture instance for the whole class, so
+			// _mockInt survives from any earlier test that wrote it (ValueSetCheck sets it to 5).
+			_mockInt = 0;
 			_caller = Substitute.For<IMockCaller<int>>();
 			_observableField = new ObservableField<int>(_mockInt);
 			_observableResolverField = new ObservableResolverField<int>(() => _mockInt, i => _mockInt = i);
