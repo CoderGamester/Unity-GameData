@@ -8,7 +8,6 @@
 - **Runtime asmdef**: `Runtime/GameLovers.GameData.asmdef` (**allowUnsafeCode = true**)
 - **Dependencies**
   - `com.unity.nuget.newtonsoft-json` (3.2.1): runtime JSON serializer + editor tools/tests
-  - `com.cysharp.unitask` (2.5.10): async API in `Runtime/ConfigServices/Interfaces/IConfigBackendService.cs`
   - `com.unity.textmeshpro` (3.0.6): used by **Samples~** UI scripts (`using TMPro;`)
 
 This file is for **agents/contributors**. User-facing usage lives in `README.md`.
@@ -23,7 +22,7 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 ## 3. Key entry points (common navigation)
 - **Configs**: `Runtime/ConfigServices/ConfigsProvider.cs`, `Runtime/ConfigServices/ConfigsSerializer.cs`
 - **Security**: `Runtime/ConfigServices/ConfigTypesBinder.cs` (whitelist binder for safe deserialization)
-- **Interfaces**: `Runtime/ConfigServices/Interfaces/*` (notably `IConfigsProvider`, `IConfigsAdder`, `IConfigBackendService`)
+- **Interfaces**: `Runtime/ConfigServices/Interfaces/*` (notably `IConfigsProvider`, `IConfigsAdder`)
 - **ScriptableObject containers**: `Runtime/ConfigServices/ConfigsScriptableObject.cs` (+ `Interfaces/IConfigsContainer.cs`)
 - **Editor windows**: `Editor/Windows/ConfigBrowserWindow.cs`, `Editor/Windows/ObservableDebugWindow.cs`
 - **Migrations**: `Editor/Migration/*` (`MigrationRunner`, `IConfigMigration`, preview helpers)
@@ -31,7 +30,7 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 - **Observable core types**: `Runtime/Observables/ObservableField.cs`, `ObservableList.cs`, `ObservableDictionary.cs`, `ComputedField.cs`
 - **Deterministic math**: `Runtime/Math/floatP.cs`, `Runtime/Math/MathfloatP.cs`
 - **Serialization helpers**: `Runtime/Serialization/*` (Unity dict, type serialization, converters)
-- **Tests**: `Tests/Editor/*` (Unit/Integration/Regression/Security/Performance/Smoke/Boundary)
+- **Tests**: `Tests/Editor/*` (Unit/Integration/Security/Performance/Smoke/Boundary)
 
 ## 4. Important behaviors / gotchas (keep in sync with code)
 - **Singleton vs id-keyed**: `GetConfig<T>()` only for singleton; use `GetConfig<T>(int)` for id-keyed.
@@ -59,12 +58,13 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 - **Config migrations**: shown inside Config Browser when migrations exist
 
 ## 6. Tests (how to run / where to add)
+- Before reading, editing, or creating any file in `Tests/`, you **MUST** read [`Tests/AGENTS.md`](Tests/AGENTS.md) first.
 - **EditMode** tests: Unity Test Runner → EditMode (tests live under `Tests/Editor/*`)
   - `Unit/` for pure logic (preferred)
   - `Integration/` for editor/tooling interactions
   - `Security/` for serializer safety expectations
   - `Performance/` only when measuring allocations/hot paths
-- **PlayMode** tests: Unity Test Runner → PlayMode (tests live under `Tests/PlayMode/*`) — use for tests that require a running scene or async UniTask flows
+- **PlayMode** tests: Unity Test Runner → PlayMode (tests live under `Tests/PlayMode/*`) — use for tests that require a running scene or Unity coroutine/frame timing
 - **Internal test seams** (`Runtime/AssemblyInfo.cs` declares `[InternalsVisibleTo("GameLovers.GameData.Editor.Tests")]`): use these instead of `BindingFlags.NonPublic` reflection on private fields.
   - `EnumSelector<T>.SetSelectionString(string)` — simulates a stale serialized enum-name string that the public `SetSelection(T)` API can't reach (since `T` is constrained to valid enum members).
   - `SerializableType<T>.FromSerializedNames(className, assemblyName)` — static factory that simulates Unity's deserialization order (private serialized fields populated, then `OnAfterDeserializeImpl` resolves) without reflection or struct-boxing dance.
@@ -92,7 +92,6 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 
 ## 10. External package sources (preferred for API lookups)
 - Newtonsoft: `Library/PackageCache/com.unity.nuget.newtonsoft-json/`
-- UniTask: `Library/PackageCache/com.cysharp.unitask/`
 - TextMeshPro: `Library/PackageCache/com.unity.textmeshpro/`
 
 ## 11. Coding standards / assembly boundaries

@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+**Removed**:
+- **BREAKING** — `IConfigBackendService` (`Runtime/ConfigServices/Interfaces/`). The interface was public API but had no implementation, no consumer, and no test anywhere in the package; it was the package's only `UniTask` consumer. Anyone implementing it must remove the implementation or vendor the two-method interface locally. `UniTask` is correspondingly dropped from `Runtime/GameLovers.GameData.asmdef` and `Samples~/Migration/Migration.asmdef`.
+
+**Changed**:
+- `package.json` now declares `com.unity.test-framework.performance` (3.5.0). Both test asmdefs already referenced `Unity.PerformanceTesting` unconditionally, so consumers without that package installed hit a missing-assembly compile error in this package's test assemblies.
+
+---
+
 ## [1.0.3] - 2026-05-04
 
 **New**:

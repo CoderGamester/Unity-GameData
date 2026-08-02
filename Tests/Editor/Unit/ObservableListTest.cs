@@ -141,6 +141,27 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableList<T>.RemoveAt notifies via a backward loop whose start index is captured once, so an
+		// observer that subscribes a new observer mid-notification cannot make that new observer fire for this call.
+		// RCR: ObservableList.cs RemoveAt — change the backward loop to
+		// `for (var i = 0; i < _updateActions.Count; i++)` (live bound) → RED (the newly-appended observer C fires
+		// for the same RemoveAt that added it). 2026-08-01
+		public void Observe_WhenObserverAddsAnotherObserverDuringNotification_NewObserverNotInvokedForCurrentUpdate()
+		{
+			_list.Add(_previousValue);
+
+			var cCallCount = 0;
+			void ObserverC(int index, int prev, int curr, ObservableUpdateType type) => cCallCount++;
+			void ObserverA(int index, int prev, int curr, ObservableUpdateType type) => _list.Observe(ObserverC);
+
+			_list.Observe(ObserverA);
+
+			_list.RemoveAt(_index);
+
+			Assert.AreEqual(0, cCallCount);
+		}
+
+		[Test]
 		public void StopObservingAllCheck()
 		{
 			_list.Observe(_caller.Call);

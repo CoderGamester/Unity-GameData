@@ -67,6 +67,41 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>.Remove must read the existing value via Dictionary.TryGetValue
+		// before resolving `_toOrignResolver`, or it resolves against a default TValue.
+		// RCR: ObservableResolverDictionary.cs Remove — delete
+		// `if (!Dictionary.TryGetValue(key, out var value)) return false;` → RED (resolves against default,
+		// removing the wrong origin key or throwing). 2026-08-01
+		public void Remove_WhenKeyExists_RemovesFromOriginDictionaryAndNotifies()
+		{
+			_dictionary.ObservableUpdateFlag = ObservableUpdateFlag.UpdateOnly;
+
+			var notified = false;
+			_dictionary.Observe((key, prev, curr, type) => notified = true);
+
+			var result = _dictionary.Remove(_key);
+
+			Assert.IsTrue(result);
+			Assert.IsFalse(_originDictionary.ContainsKey(_key));
+			Assert.IsTrue(notified);
+		}
+
+		[Test]
+		// ADMIT: Same guard as Remove_WhenKeyExists_RemovesFromOriginDictionaryAndNotifies — the miss branch must
+		// leave the origin dictionary untouched.
+		// RCR: ObservableResolverDictionary.cs Remove — delete the same TryGetValue guard → RED (a missing key
+		// still reaches `_dictionary.Remove(pair.Key)`, changing OriginDictionary.Count). 2026-08-01
+		public void Remove_WhenKeyDoesNotExist_ReturnsFalseAndLeavesOriginDictionaryIntact()
+		{
+			var countBefore = _originDictionary.Count;
+
+			var result = _dictionary.Remove(999);
+
+			Assert.IsFalse(result);
+			Assert.AreEqual(countBefore, _originDictionary.Count);
+		}
+
+		[Test]
 		public void ClearOrigin_ClearsOriginDictionary()
 		{
 			_dictionary.ClearOrigin();

@@ -113,6 +113,23 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableDictionary<TKey,TValue>.Remove must short-circuit on the TryGetValue/Remove guard
+		// before reaching the notify blocks when the key is missing.
+		// RCR: ObservableDictionary.cs Remove — delete the early return in the TryGetValue/Remove guard → RED
+		// (the observer gets a Removed callback for a never-added key, then throws on `Dictionary[key]`). 2026-08-01
+		public void Remove_WhenKeyDoesNotExist_DoesNotNotifyObservers()
+		{
+			// Both, not the default KeyUpdateOnly, so a broken guard would actually reach the global notify block.
+			_dictionary.ObservableUpdateFlag = ObservableUpdateFlag.Both;
+			_dictionary.Observe(_caller.Call);
+
+			var result = _dictionary.Remove(1);
+
+			Assert.IsFalse(result);
+			_caller.DidNotReceive().Call(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<ObservableUpdateType>());
+		}
+
+		[Test]
 		public void Clear_RemovesAllKeyValuePairs()
 		{
 			_dictionary.Add(1, 100);
@@ -212,6 +229,45 @@ namespace GameLovers.GameData.Tests
 			_dictionary.Remove(_key);
 
 			_caller.DidNotReceive().Call(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<ObservableUpdateType>());
+		}
+
+		[Test]
+		// ADMIT: ObservableDictionary<TKey,TValue>.StopObserving removes only the FIRST matching global observer
+		// instance, mirroring the ObservableList 0.6.5 fix.
+		// RCR: ObservableDictionary.cs StopObserving — delete the `break;` after `_updateActions.RemoveAt(i);` →
+		// RED (both subscribed instances are removed, so the caller receives zero calls instead of one). 2026-08-01
+		public void StopObserve_WhenCalledOnce_RemovesOnlyOneObserverInstance()
+		{
+			_dictionary.ObservableUpdateFlag = ObservableUpdateFlag.Both;
+			_dictionary.Observe(_caller.Call);
+			_dictionary.Observe(_caller.Call);
+			_dictionary.StopObserving(_caller.Call);
+
+			_dictionary.Add(_key, 0);
+
+			_caller.Received(1).Call(_key, 0, 0, ObservableUpdateType.Added);
+		}
+
+		[Test]
+		// ADMIT: ObservableDictionary<TKey,TValue>.Clear notifies global observers from a `_updateActions.ToList()`
+		// snapshot, so an observer that unsubscribes itself mid-notification cannot truncate the loop for the rest.
+		// RCR: ObservableDictionary.cs Clear — change `var listCopy = _updateActions.ToList();` to
+		// `= _updateActions;` → RED (observer B is never invoked: the live Count shrinks below B's index). 2026-08-01
+		public void Observe_WhenObserverUnsubscribesItselfDuringNotification_DoesNotThrowOrSkipOtherObservers()
+		{
+			_dictionary.ObservableUpdateFlag = ObservableUpdateFlag.Both;
+			_dictionary.Add(_key, 0);
+
+			var bInvoked = false;
+			Action<int, int, int, ObservableUpdateType> observerA = null;
+			observerA = (key, prev, next, type) => _dictionary.StopObserving(observerA);
+			void ObserverB(int key, int prev, int next, ObservableUpdateType type) => bInvoked = true;
+
+			_dictionary.Observe(observerA);
+			_dictionary.Observe(ObserverB);
+
+			Assert.DoesNotThrow(() => _dictionary.Clear());
+			Assert.IsTrue(bInvoked);
 		}
 
 		[Test]

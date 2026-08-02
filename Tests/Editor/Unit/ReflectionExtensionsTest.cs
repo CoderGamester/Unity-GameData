@@ -63,5 +63,32 @@ namespace GameLovers.GameData.Tests
 			Assert.AreEqual(typeof(BaseWithField), first.DeclaringType);
 			Assert.AreSame(first, second);
 		}
+
+		public class BaseWithMethod
+		{
+#pragma warning disable IDE0051, CS0414 // method accessed via reflection by FindMethodByName
+			private int GetSecret() => 7;
+#pragma warning restore IDE0051, CS0414
+		}
+
+		public class DerivedNoMethod : BaseWithMethod
+		{
+		}
+
+		[Test]
+		// ADMIT: ReflectionExtensions.FindMethodByName walks the base type chain for a private method and caches
+		// the result in MethodsByNameFromType.
+		// RCR: ReflectionExtensions.cs FindMethodByName — delete `methods.Add(hash, methodInfo);` → RED (the
+		// second call re-runs Type.GetMethod and returns a different instance, failing Assert.AreSame). 2026-08-01
+		public void FindMethodByName_OnDerivedType_WalksBaseTypeChainAndCaches()
+		{
+			var first = typeof(DerivedNoMethod).FindMethodByName("GetSecret");
+			var second = typeof(DerivedNoMethod).FindMethodByName("GetSecret");
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("GetSecret", first.Name);
+			Assert.AreEqual(typeof(BaseWithMethod), first.DeclaringType);
+			Assert.AreSame(first, second);
+		}
 	}
 }

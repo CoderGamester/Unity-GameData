@@ -28,7 +28,6 @@ Managing game data in Unity often leads to fragmented solutions: scattered confi
 
 - **[Unity](https://unity.com/download)** 6000.0+ (Unity 6)
 - **[Newtonsoft.Json](https://docs.unity3d.com/Packages/com.unity.nuget.newtonsoft-json@3.2/manual/index.html)** (com.unity.nuget.newtonsoft-json v3.2.1) — automatically resolved
-- **[UniTask](https://github.com/Cysharp/UniTask)** (com.cysharp.unitask v2.5.10) — used by the async backend interface `IConfigBackendService`
 - **[TextMeshPro](https://docs.unity3d.com/Packages/com.unity.textmeshpro@3.0/manual/index.html)** (com.unity.textmeshpro v3.0.6) — used by **Samples~** UI scripts only
 
 | Unity Version | Status |

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using GameLovers.GameData;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -56,38 +57,38 @@ namespace GameLovers.GameData.Tests.Security
 		}
 
 		[Test]
+		// ADMIT: ConfigTypesBinder.BindToType must reject a resolvable-but-unregistered type with its own
+		// specific message — asserting only that the text contains the payload's own type name is unfalsifiable (D1).
+		// RCR: ConfigTypesBinder.cs BindToType — reword the rejection message → RED (Assert.AreEqual on the exact
+		// message text). 2026-08-01
 		public void TrustedOnlyMode_BinderBlocksUnregisteredTypes()
 		{
 			// Create serializer and serialize DerivedConfig (which registers it)
 			var serializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly);
 			_provider.AddSingletonConfig(new DerivedConfig { Id = 10, Extra = "Data" });
 			var json = serializer.Serialize(_provider, "1");
-			
+
 			// Now try to inject a different type by modifying the JSON
 			// Replace DerivedConfig type reference with MaliciousConfig
 			// Use FullName because Newtonsoft doesn't serialize with full AssemblyQualifiedName
 			var maliciousJson = json.Replace(
 				typeof(DerivedConfig).FullName,
 				typeof(MaliciousConfig).FullName);
-			
+
 			// The binder should reject MaliciousConfig because it was never registered
 			var newProvider = new ConfigsProvider();
-			var ex = Assert.Throws<JsonSerializationException>(() => 
+			var ex = Assert.Throws<JsonSerializationException>(() =>
 				serializer.Deserialize(maliciousJson, newProvider));
-			
-			// Check both main message and inner exception for security-related keywords
-			// Newtonsoft may wrap the binder's exception with additional context
-			var fullMessage = ex.Message + (ex.InnerException?.Message ?? "");
-			var containsSecurityMessage = 
-				fullMessage.Contains("not allowed") || 
-				fullMessage.Contains("not be resolved") ||
-				fullMessage.Contains("could not be resolved") ||
-				fullMessage.Contains("MaliciousConfig") ||
-				fullMessage.Contains("whitelist") ||
-				fullMessage.Contains("security");
-			
-			Assert.IsTrue(containsSecurityMessage,
-				$"Exception should indicate type is not allowed. Actual message: {ex.Message}");
+
+			// The replace above swaps DerivedConfig for MaliciousConfig inside the $type metadata of the
+			// singleton's Dictionary<int, TConfig> wrapper, so the type actually resolved and rejected by
+			// the binder is the closed generic Dictionary<int, MaliciousConfig>, not bare MaliciousConfig.
+			// Newtonsoft wraps the binder's JsonSerializationException with positional context; the
+			// binder's own, precise message survives unmodified as the InnerException.
+			var expectedMessage = $"Type '{typeof(Dictionary<int, MaliciousConfig>).FullName}' is not allowed for deserialization. " +
+				"Only whitelisted config types are permitted for security reasons.";
+
+			Assert.AreEqual(expectedMessage, ex.InnerException?.Message);
 		}
 
 		[Test]
@@ -169,21 +170,103 @@ namespace GameLovers.GameData.Tests.Security
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer's constructor must pass MaxDepth to Newtonsoft so JsonReader.Push rejects
+		// deeply-nested payloads. The probe nests inside an UNDECLARED property so MissingMemberHandling.Ignore
+		// skips it — still traversing depth — instead of failing an earlier type conversion that would throw
+		// regardless of MaxDepth and make this test a tautology.
+		// RCR: ConfigsSerializer.cs ctor — delete `MaxDepth = maxDepth,` → RED (the maxDepth:8 case throws
+		// nothing). The maxDepth:256 negative control below must stay green either way. 2026-08-02
 		public void MaxDepth_PreventsStackOverflow()
 		{
-			// Create a serializer with a very low max depth
-			var serializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly, maxDepth: 5);
-			
-			// Try to deserialize deeply nested JSON (simulating attack)
-			// The Configs dictionary expects Type keys, so using invalid string keys like "a"
-			// will cause a JsonSerializationException when trying to convert to Type.
-			// This still validates that malformed/deeply-nested payloads are rejected.
-			var deeplyNestedJson = "{\"Version\":\"1\",\"Configs\":{" +
-				"\"a\":{\"b\":{\"c\":{\"d\":{\"e\":{\"f\":{\"g\":{}}}}}}}" +
-				"}}";
-			
-			// Should throw due to invalid type key conversion (rejects malformed payload)
-			Assert.Throws<JsonSerializationException>(() => serializer.Deserialize(deeplyNestedJson, _provider));
+			// Build a valid, Type-keyed payload with a generously high max depth first, so the JSON's
+			// Type key and Dictionary<int, DerivedConfig> wrapper are well-formed and registered.
+			var templateSerializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly, maxDepth: 256);
+			_provider.AddSingletonConfig(new DerivedConfig { Id = 1, Extra = "Data" });
+			var validJson = templateSerializer.Serialize(_provider, "1");
+
+			// Append an extra, UNRECOGNIZED property nested far deeper than the low maxDepth below.
+			// `SerializedConfigs` only declares `Version`/`Configs`, so this property is skipped rather
+			// than populated into any concrete-typed field — the only thing that can trip is depth.
+			var deepOpen = new string('[', 20);
+			var deepClose = new string(']', 20);
+			var deeplyNestedJson = validJson.Substring(0, validJson.Length - 1)
+				+ $",\"UnusedProbe\":{deepOpen}1{deepClose}}}";
+
+			var lowDepthSerializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly, maxDepth: 8);
+			// Pre-register DerivedConfig on THIS serializer's own binder (auto-registration only happens
+			// on the serializer instance that actually calls Serialize) so the $type metadata is accepted
+			// and the deeply-nested probe is what trips the guard, not an unrelated binder rejection.
+			lowDepthSerializer.RegisterAllowedTypes(new[] { typeof(DerivedConfig) });
+
+			Assert.Throws<JsonReaderException>(() => lowDepthSerializer.Deserialize(deeplyNestedJson, _provider));
+
+			// Negative control: the identical 20-level payload must NOT throw when maxDepth is generously
+			// high. Without this half, a serializer that threw on ANY nested array regardless of maxDepth
+			// would still pass the assertion above — this is what proves genuine sensitivity to the
+			// parameter under test, not just "some exception, for some reason."
+			var highDepthSerializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly, maxDepth: 256);
+			highDepthSerializer.RegisterAllowedTypes(new[] { typeof(DerivedConfig) });
+
+			Assert.DoesNotThrow(() => highDepthSerializer.Deserialize(deeplyNestedJson, _provider));
+		}
+
+		[Test]
+		// ADMIT: ConfigsSerializer.RegisterAllowedTypesFromProvider — the production path for pre-populating the
+		// allowlist from a live IConfigsProvider — was untested; only the RegisterAllowedTypes overload had coverage.
+		// RCR: ConfigsSerializer.cs RegisterAllowedTypesFromProvider — change the loop source to
+		// Enumerable.Empty<Type>() → RED (DerivedConfig rejected). Mutating the AddAllowedType call alone does NOT
+		// redden: ConfigTypesBinder re-adds the bare type recursively via the Dictionary<int,T> registration. 2026-08-01
+		public void Deserialize_TypesRegisteredFromProvider_AcceptsThemAndTheirIntKeyedDictionary()
+		{
+			var sourceProvider = new ConfigsProvider();
+			sourceProvider.AddSingletonConfig(new DerivedConfig { Id = 42, Extra = "FromProvider" });
+
+			// Produce valid JSON naming DerivedConfig and its Dictionary<int, DerivedConfig> wrapper.
+			var producingSerializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly);
+			var json = producingSerializer.Serialize(sourceProvider, "3");
+
+			// A brand-new serializer whose binder has never seen DerivedConfig via its own Serialize()
+			// call. RegisterAllowedTypesFromProvider is the ONLY thing that should let it accept the
+			// payload.
+			var consumingSerializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly);
+			consumingSerializer.RegisterAllowedTypesFromProvider(sourceProvider);
+
+			var targetProvider = new ConfigsProvider();
+			consumingSerializer.Deserialize(json, targetProvider);
+
+			var cfg = targetProvider.GetConfig<DerivedConfig>();
+			Assert.AreEqual(42, cfg.Id);
+			Assert.AreEqual("FromProvider", cfg.Extra);
+		}
+
+		[Test]
+		// ADMIT: ConfigsSerializer.RegisterAllowedTypesFromProvider must reject a type absent from the source
+		// provider with the same security message pinned in TrustedOnlyMode_BinderBlocksUnregisteredTypes.
+		// RCR: ConfigsSerializer.cs RegisterAllowedTypesFromProvider — replace the loop body with an
+		// allow-everything shortcut → RED (no throw; MaliciousConfig gets constructed). 2026-08-01
+		public void Deserialize_TypeNotRegisteredByProvider_ThrowsAndDoesNotConstructIt()
+		{
+			// sourceProvider only ever knows about DerivedConfig; MaliciousConfig is never part of it.
+			var sourceProvider = new ConfigsProvider();
+			sourceProvider.AddSingletonConfig(new DerivedConfig { Id = 1, Extra = "Data" });
+
+			var producingSerializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly);
+			var json = producingSerializer.Serialize(sourceProvider, "1");
+			var maliciousJson = json.Replace(
+				typeof(DerivedConfig).FullName,
+				typeof(MaliciousConfig).FullName);
+
+			var consumingSerializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly);
+			consumingSerializer.RegisterAllowedTypesFromProvider(sourceProvider);
+
+			var targetProvider = new ConfigsProvider();
+			var ex = Assert.Throws<JsonSerializationException>(() =>
+				consumingSerializer.Deserialize(maliciousJson, targetProvider));
+
+			var expectedMessage = $"Type '{typeof(Dictionary<int, MaliciousConfig>).FullName}' is not allowed for deserialization. " +
+				"Only whitelisted config types are permitted for security reasons.";
+
+			Assert.AreEqual(expectedMessage, ex.InnerException?.Message);
 		}
 
 		[Test]

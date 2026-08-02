@@ -93,6 +93,27 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ComputedField<T>.Observe must recompute a dirty field — establishing its ComputedTracker
+		// dependency subscriptions — before adding the observer, or later dependency changes never notify it.
+		// RCR: ComputedField.cs Observe — delete the `Recompute();` inside `if (_isDirty)` → RED (the observer
+		// receives zero calls after the dependency changes). 2026-08-01
+		public void Observe_WhenFieldIsDirty_RecomputesBeforeAddingObserver()
+		{
+			var callCount = 0;
+			var computed = new ComputedField<int>(() => _field1.Value);
+
+			// Field is dirty from construction (never read .Value), and no dependency is subscribed yet.
+			computed.Observe((prev, curr) => callCount++);
+
+			// Observe() itself must not have invoked the callback.
+			Assert.AreEqual(0, callCount);
+
+			// The dependency link must have been established during Observe()'s recompute, so this now notifies.
+			_field1.Value = 999;
+			Assert.AreEqual(1, callCount);
+		}
+
+		[Test]
 		public void InvokeObserve_ImmediatelyInvokes()
 		{
 			var computed = new ComputedField<int>(() => _field1.Value);
