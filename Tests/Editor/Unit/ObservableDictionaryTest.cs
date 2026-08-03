@@ -273,8 +273,14 @@ namespace GameLovers.GameData.Tests
 
 
 		[Test]
+		// ADMIT: ObservableDictionary.StopObserving(Action) removes the global observer, so no notification
+		// reaches it afterwards. The fixture must set ObservableUpdateFlag.Both — under the constructor default
+		// KeyUpdateOnly the global fan-out never runs and DidNotReceive() passes regardless.
+		// RCR: ObservableDictionary.cs StopObserving — disable the `_updateActions[i] == onUpdate` removal →
+		// RED. Also reddens StopObserve_WhenCalledOnce_RemovesOnlyOneObserverInstance.
 		public void StopObserveCheck()
 		{
+			_dictionary.ObservableUpdateFlag = ObservableUpdateFlag.Both;
 			_dictionary.Observe(_caller.Call);
 			_dictionary.StopObserving(_caller.Call);
 
@@ -341,8 +347,13 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableDictionary.StopObservingAll(subscriber) removes every global observer owned by that
+		// subscriber. Needs ObservableUpdateFlag.Both for the same reason as the sibling above.
+		// RCR: ObservableDictionary.cs StopObservingAll — disable the `.Target == subscriber` global removal →
+		// RED. Also reddens StopObservingAll_MultipleCalls_Check, which shares that line.
 		public void StopObservingAllCheck()
 		{
+			_dictionary.ObservableUpdateFlag = ObservableUpdateFlag.Both;
 			_dictionary.Observe(_caller.Call);
 			_dictionary.StopObservingAll(_caller);
 
@@ -354,8 +365,13 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: StopObservingAll(subscriber) removes ALL of a subscriber's registrations, not just the first —
+		// the loop has no `break`. Needs ObservableUpdateFlag.Both to observe the global fan-out at all.
+		// RCR: no isolated mutation — reddens under StopObservingAllCheck's `.Target == subscriber` mutation
+		// (radius 2, verified). Shared-path coverage; the multiple-registration claim is the increment it adds.
 		public void StopObservingAll_MultipleCalls_Check()
 		{
+			_dictionary.ObservableUpdateFlag = ObservableUpdateFlag.Both;
 			_dictionary.Observe(_caller.Call);
 			_dictionary.Observe(_caller.Call);
 			_dictionary.StopObservingAll(_caller);
@@ -368,8 +384,13 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: StopObservingAll() with no subscriber takes the wholesale-clear branch and empties BOTH the
+		// key-scoped and global observer lists. Needs ObservableUpdateFlag.Both to see the global half.
+		// RCR: ObservableDictionary.cs StopObservingAll — drop `_updateActions.Clear();` from the
+		// subscriber == null branch → RED (isolated).
 		public void StopObservingAll_Everything_Check()
 		{
+			_dictionary.ObservableUpdateFlag = ObservableUpdateFlag.Both;
 			_dictionary.Observe(_caller.Call);
 			_dictionary.StopObservingAll();
 
