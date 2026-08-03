@@ -391,15 +391,16 @@ Tests/
 
 ## 13. Coverage Register
 
-**Baseline — runtime assembly: 72.9% (2660/3647), measured 2026-08-02.**
+**Baseline — runtime assembly: 72.9% (2660/3647), measured 2026-08-04.**
 Editor assembly: **17.1% (299/1746)** — near-zero by policy; the ACCEPTED (iii) rows below are why.
+Repo-wide runtime coverage is **74.1% (6609/8922)** across all 11 assemblies.
 
-Regenerate with `Tools/coverage.sh`, which prints the runtime/Editor split.
-Steer by the **runtime** figure: Editor code is ~48% of the repo's coverable
-lines and is accepted-untestable, so the combined number (41.0%) can never
-meaningfully move. Do not compare against any figure recorded before this date —
-earlier reports were produced without `-debugCodeOptimization` (Release mode
-shrinks the denominator ~40%) or with test/sample assemblies leaking into scope.
+Regenerate with `Tools/coverage.sh`, which prints the runtime/Editor split. Steer by
+the **runtime** figure: Editor code is ~48% of coverable lines and accepted-untestable,
+so the combined number (41.1%) can never meaningfully move. Sanity-check any rerun by
+confirming `MathfloatP` reports ~1002 coverable lines — a smaller figure means
+`-debugCodeOptimization` was missing and the denominator silently shrank ~40%.
+
 
 Every untested symbol worth naming is either ACCEPTED (justified — do not
 re-report) or OPEN (a real gap, owed a test). An untested symbol in neither state
@@ -435,6 +436,8 @@ The count of OPEN rows is the honest coverage-debt number.
 
 | Symbol (file:line) | State | Reason / Owed | Recorded |
 |---|---|---|---|
+| `MinLengthAttribute` non-`ICollection` `IEnumerable` counting fallback (`Runtime/Validation/`) | OPEN | Owed: no test reaches this branch at all — every existing case passes an array or `ICollection`, which take the earlier path. | 2026-08-04 |
+| `ObservableDictionary` global-observer fan-out under `ObservableUpdateFlag.Both` (`Runtime/Observables/ObservableDictionary.cs`) | OPEN | Owed: the four `StopObserv*` fixtures register global observers but leave the flag at the constructor default `KeyUpdateOnly`, under which `Add`/indexer-set/`Remove` skip `_updateActions` entirely — all four were observed GREEN against the removal mutation. They need `ObservableUpdateFlag.Both` set in the fixture to become falsifiable. | 2026-08-04 |
 
 ## 14. Update Policy
 
