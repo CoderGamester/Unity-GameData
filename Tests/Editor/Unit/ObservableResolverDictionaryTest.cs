@@ -25,12 +25,20 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>.TryGetOriginValue must map the resolved key back through
+		// `_toOrignResolver` and hit the origin dictionary.
+		// RCR: ObservableResolverDictionary.cs TryGetOriginValue — `value = default; return false;` → RED (IsTrue
+		// fails). 2026-08-02
 		public void TryGetOriginValue_KeyExists_ReturnsTrueAndOutValue()
 		{
 			Assert.IsTrue(_dictionary.TryGetOriginValue(_key, out var value));
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>.TryGetOriginValue must report the origin dictionary's miss rather
+		// than a blanket success.
+		// RCR: ObservableResolverDictionary.cs TryGetOriginValue — append `|| true` to the return → RED (IsFalse
+		// fails). 2026-08-02
 		public void TryGetOriginValue_KeyDoesNotExist_ReturnsFalseAndOutDefault()
 		{
 			var result = _dictionary.TryGetOriginValue(999, out var value);
@@ -40,6 +48,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>.AddOrigin must insert the origin-typed pair into the origin
+		// dictionary, not only the resolved pair into the base.
+		// RCR: ObservableResolverDictionary.cs AddOrigin — delete `_dictionary.Add(key, value);` → RED
+		// (_originDictionary does not contain 99). 2026-08-02
 		public void AddOrigin_AddsValueToOriginDictionary()
 		{
 			var newKey = 99;
@@ -51,6 +63,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>.UpdateOrigin must write the origin-typed value straight into the
+		// origin dictionary alongside the resolved indexer write.
+		// RCR: ObservableResolverDictionary.cs UpdateOrigin — delete `_dictionary[key] = value;` → RED
+		// (_originDictionary[_key] is still "1", not "42"). 2026-08-02
 		public void UpdateOrigin_UpdatesValueInOriginDictionary()
 		{
 			var updatedValue = "42";
@@ -60,6 +76,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>.RemoveOrigin must delete the entry from the origin dictionary,
+		// not only from the resolved base dictionary.
+		// RCR: ObservableResolverDictionary.cs RemoveOrigin — delete `_dictionary.Remove(key);` → RED
+		// (_originDictionary still contains the key). 2026-08-02
 		public void RemoveOrigin_RemovesValueFromOriginDictionary()
 		{
 			Assert.IsTrue(_dictionary.RemoveOrigin(_key));
@@ -102,6 +122,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>.ClearOrigin must clear the origin dictionary, not just the
+		// resolved base.
+		// RCR: ObservableResolverDictionary.cs ClearOrigin — delete `_dictionary.Clear();` → RED
+		// (_originDictionary.Count is 1, not 0). 2026-08-02
 		public void ClearOrigin_ClearsOriginDictionary()
 		{
 			_dictionary.ClearOrigin();
@@ -110,6 +134,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>.Rebind must empty the resolved dictionary before rebuilding it
+		// from the new origin, or stale keys survive the rebind.
+		// RCR: ObservableResolverDictionary.cs Rebind — replace `Dictionary.Clear();` with `_ = Dictionary.Count;` →
+		// RED (Count is 3, not 2, and the stale key is still present). 2026-08-02
 		public void Rebind_ChangesOriginDictionary()
 		{
 			// Note: _key already exists in the dictionary from Init(), so we don't add it again
@@ -133,6 +161,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>.Rebind must leave the inherited observer lists untouched, so
+		// handlers registered before the rebind still fire.
+		// RCR: ObservableResolverDictionary.cs Rebind — add `StopObservingAll();` to the body → RED (observerCalls
+		// is 0, not 1, after Add(300, 300)). 2026-08-02
 		public void Rebind_KeepsObservers()
 		{
 			// Setup observer
@@ -159,6 +191,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>'s constructor must store the *resolved value* produced by
+		// `fromOrignResolver`, not just the resolved key.
+		// RCR: ObservableResolverDictionary.cs ctor — change `Dictionary.Add(fromOrignResolver(pair));` to
+		// `Dictionary.Add(fromOrignResolver(pair).Key, default);` → RED (value is 0, not the parsed 1). 2026-08-02
 		public void TryGetValue_ReturnsTrue_WhenKeyExists()
 		{
 			// Key was added in Init() via origin dictionary with value "1"
@@ -167,6 +203,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableResolverDictionary<...>'s constructor resolves every origin pair eagerly and must let a
+		// resolver failure escape rather than skipping the bad row.
+		// RCR: ObservableResolverDictionary.cs ctor — wrap the `Dictionary.Add(fromOrignResolver(pair));` call in
+		// `try { ... } catch (FormatException) { }` → RED (no FormatException reaches the caller). 2026-08-02
 		public void Add_InvalidFormat_ThrowsException()
 		{
 			// Create a dictionary with an invalid format value

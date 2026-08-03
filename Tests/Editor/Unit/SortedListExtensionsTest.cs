@@ -9,6 +9,11 @@ namespace GameLovers.GameData.Tests
 	public class SortedListExtensionsTest
 	{
 		[Test]
+		// ADMIT: the single-argument InsertIntoSortedList<T> overload must delegate with an ASCENDING comparison
+		// (`a.CompareTo(b)`), which is the ordering every caller of the IComparable form assumes.
+		// RCR: SortedListExtensions.cs InsertIntoSortedList<T>(IList<T>, T) — flip the delegated lambda to
+		// `(a, b) => b.CompareTo(a)` → RED (the non-decreasing assertion trips). Also reddens the duplicate-input
+		// sibling, which uses the same overload. 2026-08-02
 		public void InsertIntoSortedList_RandomInputs_PreservesNonDecreasingOrdering()
 		{
 			var list = new List<int>();
@@ -24,6 +29,11 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: InsertIntoSortedList's equal-element branch must insert AT the matched middle index — that is the
+		// only position that keeps a run of duplicates contiguous and the list sorted.
+		// RCR: SortedListExtensions.cs InsertIntoSortedList<T>(IList<T>, T, Comparison<T>) — change the
+		// `compareToResult == 0` branch to `list.Insert(0, value);` → RED (a duplicate lands before smaller
+		// elements). Distinct inputs never reach this branch, so the sibling tests stay green. 2026-08-02
 		public void InsertIntoSortedList_DuplicateInputs_PreservesNonDecreasingOrdering()
 		{
 			var list = new List<int>();
@@ -39,6 +49,11 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: the Comparison<T> overload must honour the CALLER's comparison sign, so a descending comparison
+		// produces a descending list.
+		// RCR: SortedListExtensions.cs InsertIntoSortedList<T>(IList<T>, T, Comparison<T>) — negate
+		// `comparison(middleValue, value)` → RED (the list comes out ascending). Also reddens the two siblings that
+		// route through this same overload. 2026-08-02
 		public void InsertIntoSortedList_WithComparison_DescendingComparison_PreservesNonIncreasingOrdering()
 		{
 			var list = new List<int>();
@@ -58,6 +73,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: the IComparer<T> overload is a separate binary search from the Comparison<T> one and must use the
+		// comparer's sign directly.
+		// RCR: SortedListExtensions.cs InsertIntoSortedList<T>(IList<T>, T, IComparer<T>) — negate
+		// `comparer.Compare(middleValue, value)` → RED (the non-decreasing assertion trips). 2026-08-02
 		public void InsertIntoSortedList_WithComparer_PreservesNonDecreasingOrdering()
 		{
 			var list = new List<int>();

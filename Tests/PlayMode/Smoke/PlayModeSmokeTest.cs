@@ -10,6 +10,10 @@ namespace GameLovers.GameData.Tests.PlayMode.Smoke
 	public class PlayModeSmokeTest
 	{
 		[UnityTest]
+		// ADMIT: smoke — exempt from A1/A2 by directory (Tests/AGENTS.md §1, smoke exemption). Defect class: the
+		// runtime assembly no longer loads in a PlayMode player loop.
+		// RCR: none claimed — smoke exemption; ObservableField's notify path is mutated under ObservableFieldTest.
+		// 2026-08-02
 		public IEnumerator ObservableField_UpdatesDuringPlayMode()
 		{
 			var field = new ObservableField<int>(10);
@@ -23,6 +27,10 @@ namespace GameLovers.GameData.Tests.PlayMode.Smoke
 		}
 
 		[UnityTest]
+		// ADMIT: smoke — exempt from A1/A2 by directory (Tests/AGENTS.md §1, smoke exemption). Defect class: the
+		// runtime assembly no longer loads in a PlayMode player loop.
+		// RCR: none claimed — smoke exemption; ComputedField's dependency path is mutated under ComputedFieldTest.
+		// 2026-08-02
 		public IEnumerator ComputedField_UpdatesDuringPlayMode()
 		{
 			var field = new ObservableField<int>(10);

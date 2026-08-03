@@ -9,6 +9,10 @@ namespace GameLovers.GameData.Tests
 	public class SerializableTypeTest
 	{
 		[Test]
+		// ADMIT: SerializableType<T>.Value falls back to typeof(T) when `_value` was never resolved, so a default
+		// instance is usable rather than null.
+		// RCR: SerializableType.cs Value.get — drop the `?? typeof(T)` fallback → RED (Value is null, not
+		// typeof(int)). Also reddens ImplicitConversion_ToType_Works and the IEquatable<Type> test. 2026-08-02
 		public void Constructor_WithType_StoresCorrectly()
 		{
 			var st = new SerializableType<int>();
@@ -16,6 +20,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: SerializableType<T>.OnAfterDeserializeImpl must resolve the serialized class/assembly names back
+		// into a Type instead of short-circuiting them away.
+		// RCR: SerializableType.cs OnAfterDeserializeImpl — force the empty-names guard to `if (true)` → RED (Value
+		// is typeof(object), not typeof(string)). 2026-08-02
 		public void Value_Property_ResolvesCorrectly()
 		{
 			// Simulate Unity deserialization (private serialized fields populated, then
@@ -27,6 +35,9 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: SerializableType<T>.Equals(SerializableType<T>) compares the resolved Value, so two instances
+		// pointing at the same type are equal.
+		// RCR: SerializableType.cs Equals(SerializableType<T>) — `return false;` → RED (IsTrue fails). 2026-08-02
 		public void Equals_SameType_ReturnsTrue()
 		{
 			var st1 = new SerializableType<int>();
@@ -51,6 +62,9 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: SerializableType<T>'s implicit Type operator must route through Value, which is what lets the
+		// struct stand in for a Type in call sites.
+		// RCR: SerializableType.cs implicit operator Type — `return null;` → RED (null, not typeof(int)). 2026-08-02
 		public void ImplicitConversion_ToType_Works()
 		{
 			var st = new SerializableType<int>();
@@ -59,6 +73,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: SerializableType<T>.Equals(Type) — the IEquatable<Type> overload — must compare against the
+		// resolved Value in both directions.
+		// RCR: SerializableType.cs Equals(Type) — `return true;` → RED (Equals(typeof(string)) is expected false).
+		// 2026-08-02
 		public void Equals_IEquatableType_SameRuntimeType_ReturnsTrue_DifferentType_ReturnsFalse()
 		{
 			var st = new SerializableType<int>();

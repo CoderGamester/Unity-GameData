@@ -45,6 +45,10 @@ namespace GameLovers.GameData.Tests.Security
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer in TrustedOnly mode must select TypeNameHandling.Auto, or the polymorphic $type
+		// metadata the round trip depends on is never written.
+		// RCR: ConfigsSerializer.cs ctor — collapse the TypeNameHandling ternary to `TypeNameHandling.None` → RED
+		// (no $type in the payload). Broad: the whole TrustedOnly round-trip suite depends on this line. 2026-08-02
 		public void TrustedOnlyMode_TypeNameHandlingAuto_Verified()
 		{
 			var serializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly);
@@ -92,6 +96,11 @@ namespace GameLovers.GameData.Tests.Security
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer.Serialize must auto-register each serialized type on its binder in TrustedOnly
+		// mode, or its own payload is rejected on the way back in.
+		// RCR: ConfigsSerializer.cs Serialize — change the `_securityMode == TrustedOnly` auto-register guard to
+		// `if (false)` → RED (JsonSerializationException naming the un-whitelisted type). Also reddens the
+		// ConfigsSerializerTest round trips. 2026-08-02
 		public void TrustedOnlyMode_RoundTrip_Works()
 		{
 			var serializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly);
@@ -108,6 +117,10 @@ namespace GameLovers.GameData.Tests.Security
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer in Secure mode must select TypeNameHandling.None — no $type is emitted, and the
+		// documented consequence is that the payload cannot be read back.
+		// RCR: ConfigsSerializer.cs ctor — collapse the TypeNameHandling ternary to `TypeNameHandling.Auto` → RED
+		// (both halves fail: $type appears and the deserialize no longer throws). 2026-08-02
 		public void SecureMode_CannotRoundTrip_ExpectedLimitation()
 		{
 			// Secure mode uses TypeNameHandling.None, which means the internal
@@ -132,6 +145,11 @@ namespace GameLovers.GameData.Tests.Security
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer.RegisterAllowedTypes must actually feed the supplied types to the binder — it is
+		// the only way a serializer that never called Serialize can accept a foreign payload.
+		// RCR: ConfigsSerializer.cs RegisterAllowedTypes — change the loop source to `Enumerable.Empty<Type>()` →
+		// RED (JsonSerializationException naming DerivedConfig). Also reddens MaxDepth_PreventsStackOverflow.
+		// 2026-08-02
 		public void RegisterAllowedTypes_AllowsTypesForDeserialization()
 		{
 			// Create a serializer and manually register types
@@ -152,6 +170,11 @@ namespace GameLovers.GameData.Tests.Security
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer.Deserialize must let Newtonsoft's JsonReaderException escape rather than swallow
+		// a truncated payload and continue with a null result.
+		// RCR: ConfigsSerializer.cs Deserialize — wrap the DeserializeObject call in
+		// `try { ... } catch (JsonReaderException) { }` → RED (NullReferenceException arrives instead of the expected
+		// JsonReaderException). 2026-08-02
 		public void Deserialize_MalformedJson_ThrowsGracefully()
 		{
 			var serializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly);
@@ -270,6 +293,10 @@ namespace GameLovers.GameData.Tests.Security
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer.SecurityMode must report the mode the instance was constructed with — callers
+		// branch on it to decide whether a round trip is possible.
+		// RCR: ConfigsSerializer.cs SecurityMode — hard-code `=> SerializationSecurityMode.Secure;` → RED (the
+		// TrustedOnly instance reports Secure). 2026-08-02
 		public void SecurityMode_Property_ReturnsCorrectMode()
 		{
 			var trustedSerializer = new ConfigsSerializer(SerializationSecurityMode.TrustedOnly);

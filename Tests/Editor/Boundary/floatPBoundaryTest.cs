@@ -8,6 +8,8 @@ namespace GameLovers.GameData.Tests.Boundary
 	public class floatPBoundaryTest
 	{
 		[Test]
+		// ADMIT: floatP.operator* saturates to a signed infinity when the product exponent overflows past 255.
+		// RCR: floatP.cs operator* - overflow `sign ^ RawPositiveInfinity` -> `sign` -> RED (MaxValue*2 is zero, not infinity).
 		public void MaxValue_Operations()
 		{
 			var max = floatP.MaxValue;
@@ -18,6 +20,8 @@ namespace GameLovers.GameData.Tests.Boundary
 		}
 
 		[Test]
+		// ADMIT: floatP.operator* carries the product's sign bit, so MinValue * One stays negative.
+		// RCR: floatP.cs operator* - `sign = (uint)man & 0x80000000` -> `sign = 0` -> RED (MinValue*One returns +MaxValue).
 		public void MinValue_Operations()
 		{
 			var min = floatP.MinValue;
@@ -28,6 +32,8 @@ namespace GameLovers.GameData.Tests.Boundary
 		}
 
 		[Test]
+		// ADMIT: floatP.operator* propagates a NaN first operand instead of the other factor.
+		// RCR: floatP.cs operator* - non-finite fallthrough `return f1;` -> `return f2;` -> RED (NaN * Zero returns 0).
 		public void NaN_Propagation_AllOperations()
 		{
 			var nan = floatP.NaN;
@@ -37,6 +43,8 @@ namespace GameLovers.GameData.Tests.Boundary
 		}
 
 		[Test]
+		// ADMIT: floatP.operator== equates +0 and -0 despite their differing raw bit patterns.
+		// RCR: floatP.cs operator== - drop the zero-magnitude clause -> RED (Zero == -Zero becomes false).
 		public void Zero_NegativeZero_Equality()
 		{
 			var zero = floatP.Zero;

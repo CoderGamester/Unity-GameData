@@ -64,6 +64,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: UnitySerializedDictionary<TKey,TValue>.OnAfterDeserialize folds the backing lists in with the
+		// INDEXER, so a duplicate key serialized by Unity resolves last-one-wins instead of throwing.
+		// RCR: UnitySerializedDictionary.cs OnAfterDeserialize — guard the assignment with `if (!ContainsKey(...))`
+		// → RED (the value stays 1 instead of 2). 2026-08-02
 		public void OnAfterDeserialize_OverwritesDuplicateKeys()
 		{
 			// Simulate Unity deserialization (the YAML serializer populates the backing lists,
@@ -77,6 +81,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: UnitySerializedDictionary<TKey,TValue>.OnBeforeSerialize must flatten the live dictionary into the
+		// `_keyData`/`_valueData` backing lists Unity actually writes to YAML.
+		// RCR: UnitySerializedDictionary.cs OnBeforeSerialize — delete `_keyData.Add(item.Key);` → RED
+		// (KeyDataInternal.Count is 0, not 2). 2026-08-02
 		public void OnBeforeSerialize_PopulatesLists()
 		{
 			_dictionary.Add("key1", 10);

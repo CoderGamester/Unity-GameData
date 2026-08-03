@@ -45,6 +45,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObjectExtensions.IsValid must report false for a plain (non-UnityEngine.Object) null reference,
+		// which is the branch every non-Unity caller takes.
+		// RCR: ObjectExtensions.cs IsValid — change the non-Unity `return o != null;` to `return true;` → RED
+		// (IsFalse(nullRef.IsValid()) fails). 2026-08-02
 		public void IsValid_NullAndLiveReferences_ReturnsCorrectly()
 		{
 			object live = new object();
@@ -62,6 +66,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObjectExtensions.GetDisplayString must append the generic ARGUMENT names, not just the open type's
+		// name — that is what makes `List<int>` distinguishable from `List<string>` in the Config Browser.
+		// RCR: ObjectExtensions.cs GetDisplayString — delete `stringBuilder.Append(types[0].Name);` from
+		// appendGenericParameters → RED ("Int32" is missing from the output). 2026-08-02
 		public void GetDisplayString_GenericAndArrayTypes_FormatsReadable()
 		{
 			var listType = typeof(List<int>);

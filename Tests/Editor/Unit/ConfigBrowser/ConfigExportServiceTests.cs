@@ -8,6 +8,10 @@ namespace GameLovers.GameData.Tests
 	public class ConfigExportServiceTests
 	{
 		[Test]
+		// ADMIT: ConfigExportService.ExportProviderToJson keys each config block by the type's FULL name, so an
+		// export stays unambiguous across namespaces.
+		// RCR: ConfigExportService.cs ExportProviderToJson — change `kv.Key.FullName ?? kv.Key.Name` to `kv.Key.Name`
+		// → RED (StringAssert.Contains on the full name fails). 2026-08-02
 		public void ExportProviderToJson_WithSingletonAndCollection_EmitsKeyedJson()
 		{
 			var provider = new ConfigsProviderBuilder()

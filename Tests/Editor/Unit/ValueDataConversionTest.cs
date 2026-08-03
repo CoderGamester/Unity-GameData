@@ -8,6 +8,10 @@ namespace GameLovers.GameData.Tests
 	public class ValueDataConversionTest
 	{
 		[Test]
+		// ADMIT: Vector2Serializable's implicit Vector2 operator must map x→x and y→y (it builds a Vector3 that
+		// then narrows, which is exactly where a component swap would hide).
+		// RCR: ValueData.cs Vector2Serializable implicit operator Vector2 — swap to `new Vector3(v.y, v.x)` → RED
+		// (x/y come back transposed). Also reddens JsonConvertersTest.Vector2_RoundTrip. 2026-08-02
 		public void Vector2Serializable_ImplicitConversion_RoundTrip_PreservesXY()
 		{
 			var original = new Vector2(3f, 7f);
@@ -20,6 +24,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: Vector3IntSerializable's implicit Vector3Int operator must carry all three components — the int
+		// wrappers are separate code paths from the float ones.
+		// RCR: ValueData.cs Vector3IntSerializable implicit operator Vector3Int — `new Vector3Int(v.x, v.y, 0)` →
+		// RED (the Vector3Int round trip loses z). 2026-08-02
 		public void VectorSerializable_ImplicitRoundTrip_PreservesValues()
 		{
 			var v3 = new Vector3(1f, 2f, 3f);
