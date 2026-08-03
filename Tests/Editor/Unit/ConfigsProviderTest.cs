@@ -179,6 +179,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: exercises ConfigsProvider.GetConfigsList<T>'s defensive copy; the AreNotSame half has no one-line
+		// mutation at all -- caching the list is a structural change, not a line edit.
+		// RCR: no isolated mutation -- the Count half reddens under EmptyConfigs_GetConfigsList_ReturnsEmptyList's
+		// mutation (radius 5, observed). Shared-path coverage, not a duplicate.
 		public void GetConfigsList_ReturnsNewListInstance()
 		{
 			_provider.AddConfigs(c => c.Id, new List<MockCollectionConfig> { new MockCollectionConfig { Id = 1 } });
@@ -281,6 +285,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: exercises ConfigsProvider.AddAllConfigs' direct bulk-registration loop; no unique one-line pin.
+		// RCR: no isolated mutation -- reddens under EmptyConfigs_GetConfigsList_ReturnsEmptyList's mutation
+		// (radius 5, observed); every non-crashing edit to AddAllConfigs also reddens UpdateTo_SetsVersionAndMergesConfigs.
+		// Shared-path coverage, not a duplicate.
 		public void AddAllConfigs_BulkPayload_RegistersAllTypes()
 		{
 			var singletonContainer = new Dictionary<int, MockSingletonConfig>

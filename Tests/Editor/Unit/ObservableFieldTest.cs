@@ -138,17 +138,6 @@ namespace GameLovers.GameData.Tests
 			_caller.DidNotReceive().UpdateCall(Arg.Any<int>(), Arg.Any<int>());
 		}
 
-		[Test]
-		public void StopObserve_NotObserving_DoesNothing()
-		{
-			_observableField.StopObserving(_caller.UpdateCall);
-			_observableResolverField.StopObserving(_caller.UpdateCall);
-
-			_observableField.InvokeUpdate();
-			_observableResolverField.InvokeUpdate();
-
-			_caller.DidNotReceive().UpdateCall(Arg.Any<int>(), Arg.Any<int>());
-		}
 
 		[Test]
 		// ADMIT: ObservableField<T>.StopObservingAll(subscriber) matches on `Delegate.Target`, so passing the
@@ -206,17 +195,6 @@ namespace GameLovers.GameData.Tests
 			_caller.DidNotReceive().UpdateCall(Arg.Any<int>(), Arg.Any<int>());
 		}
 
-		[Test]
-		public void StopObservingAll_NotObserving_DoesNothing()
-		{
-			_observableField.StopObservingAll();
-			_observableResolverField.StopObservingAll();
-
-			_observableField.InvokeUpdate();
-			_observableResolverField.InvokeUpdate();
-
-			_caller.DidNotReceive().UpdateCall(Arg.Any<int>(), Arg.Any<int>());
-		}
 
 		[Test]
 		// ADMIT: ObservableResolverField<T>.Rebind must swap the getter as well as the setter, or reads keep

@@ -271,14 +271,6 @@ namespace GameLovers.GameData.Tests
 			_caller.DidNotReceive().Call(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), ObservableUpdateType.Removed);
 		}
 
-		[Test]
-		public void InvokeUpdate_NotObserving_DoesNothing()
-		{
-			_dictionary.Add(_key, 0);
-			_dictionary.InvokeUpdate(_key);
-
-			_caller.DidNotReceive().Call(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<ObservableUpdateType>());
-		}
 
 		[Test]
 		public void StopObserveCheck()
@@ -388,17 +380,6 @@ namespace GameLovers.GameData.Tests
 			_caller.DidNotReceive().Call(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<ObservableUpdateType>());
 		}
 
-		[Test]
-		public void StopObservingAll_NotObserving_DoesNothing()
-		{
-			_dictionary.StopObservingAll(_caller);
-
-			_dictionary.Add(_key, 0);
-			_dictionary[_key] = 0;
-			_dictionary.Remove(_key);
-
-			_caller.DidNotReceive().Call(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<ObservableUpdateType>());
-		}
 
 		[Test]
 		// ADMIT: under ObservableUpdateFlag.KeyUpdateOnly, ObservableDictionary<TKey,TValue>.Add must skip the

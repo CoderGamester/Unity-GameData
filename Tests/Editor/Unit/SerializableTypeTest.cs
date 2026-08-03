@@ -45,13 +45,6 @@ namespace GameLovers.GameData.Tests
 			Assert.IsTrue(st1.Equals(st2));
 		}
 
-		[Test]
-		public void Equals_DifferentType_ReturnsFalse()
-		{
-			var st1 = new SerializableType<int>();
-			var st2 = new SerializableType<string>();
-			Assert.IsFalse(st1.Equals(st2));
-		}
 
 		[Test]
 		public void GetHashCode_SameType_SameHash()

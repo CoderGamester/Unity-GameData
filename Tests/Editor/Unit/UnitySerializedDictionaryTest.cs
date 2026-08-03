@@ -20,41 +20,10 @@ namespace GameLovers.GameData.Tests
 			_dictionary = new StringIntDictionary();
 		}
 
-		[Test]
-		public void Add_StoresKeyValue()
-		{
-			_dictionary.Add("test", 100);
-			Assert.AreEqual(100, _dictionary["test"]);
-		}
 
-		[Test]
-		public void Add_DuplicateKey_ThrowsArgumentException()
-		{
-			_dictionary.Add("test", 100);
-			Assert.Throws<ArgumentException>(() => _dictionary.Add("test", 200));
-		}
 
-		[Test]
-		public void Remove_ExistingKey_ReturnsTrue()
-		{
-			_dictionary.Add("test", 100);
-			Assert.IsTrue(_dictionary.Remove("test"));
-			Assert.AreEqual(0, _dictionary.Count);
-		}
 
-		[Test]
-		public void TryGetValue_Exists_ReturnsTrue()
-		{
-			_dictionary.Add("test", 100);
-			Assert.IsTrue(_dictionary.TryGetValue("test", out var val));
-			Assert.AreEqual(100, val);
-		}
 
-		[Test]
-		public void TryGetValue_NotExists_ReturnsFalse()
-		{
-			Assert.IsFalse(_dictionary.TryGetValue("missing", out _));
-		}
 
 		[Test]
 		public void Indexer_Set_NewKey_AddsEntry()

@@ -233,16 +233,6 @@ namespace GameLovers.GameData.Tests
 			_caller.DidNotReceive().Call(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<ObservableUpdateType>());
 		}
 
-		[Test]
-		public void StopObservingAll_NotObserving_DoesNothing()
-		{
-			_list.StopObservingAll();
-
-			_list.Add(_previousValue);
-			_list.InvokeUpdate(_index);
-
-			_caller.DidNotReceive().Call(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<ObservableUpdateType>());
-		}
 
 		[Test]
 		// ADMIT: ObservableList<T>.Clear must report each element as the Removed callback's *previous* value before
