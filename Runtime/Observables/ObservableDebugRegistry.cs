@@ -243,9 +243,6 @@ namespace GameLovers.GameData
 				_subscriberCountGetter = subscriberCountGetter;
 			}
 
-			/// <summary>
-			/// Creates a snapshot from this entry with current live data.
-			/// </summary>
 			public EntrySnapshot ToSnapshot(object instance)
 			{
 				string value;
