@@ -114,6 +114,9 @@ namespace GameLovers.GameData
 		/// <inheritdoc cref="Dictionary{TKey,TValue}.Clear"/>
 		void Clear();
 
+		/// <summary>
+		/// Notifies the observers of a single key without changing its value.
+		/// </summary>
 		/// <remarks>
 		/// It invokes any update method that is observing to the given <paramref name="key"/> on this dictionary
 		/// </remarks>
@@ -187,6 +190,7 @@ namespace GameLovers.GameData
 		/// <inheritdoc />
 		public ReadOnlyDictionary<TKey, TValue> ReadOnlyDictionary => new ReadOnlyDictionary<TKey, TValue>(Dictionary);
 
+		/// <summary>The backing dictionary; override to change the storage a subclass reads through.</summary>
 		protected virtual IDictionary<TKey, TValue> Dictionary { get; set; }
 
 		private ObservableDictionary()
@@ -468,6 +472,10 @@ namespace GameLovers.GameData
 			}
 		}
 
+		/// <summary>
+		/// Notifies the subscribers selected by <see cref="ObservableUpdateFlag"/>. Suppressed while a
+		/// batch is open, which then fires once on resume.
+		/// </summary>
 		protected void InvokeUpdate(TKey key, TValue previousValue)
 		{
 			if (_isBatching)

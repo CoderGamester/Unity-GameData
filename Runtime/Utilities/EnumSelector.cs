@@ -108,11 +108,18 @@ namespace GameLovers.GameData
 			_selection = Enum.GetName(typeof(T), data);
 		}
 
+		/// <summary>
+		/// Reads the current selection, which falls back to the enum's default when the stored name no longer resolves.
+		/// </summary>
 		public static implicit operator T(EnumSelector<T> d)
 		{
 			return d.GetSelection();
 		}
 
+		/// <summary>
+		/// Stages a raw selection string, so a test can reproduce a stale serialized enum name that the
+		/// public typed API cannot express.
+		/// </summary>
 		internal void SetSelectionString(string serializedName)
 		{
 			_selection = serializedName;

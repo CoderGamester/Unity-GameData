@@ -33,6 +33,7 @@ namespace GameLovers.GameData
 	public static class ObservableDebugRegistry
 	{
 #if UNITY_EDITOR
+		/// <summary>Identity and creation site of a tracked observable. Editor introspection only — see AGENTS.md §4.</summary>
 		internal readonly struct ObservableDebugInfo
 		{
 			public readonly int Id;
@@ -52,8 +53,10 @@ namespace GameLovers.GameData
 				LineNumber = lineNumber;
 			}
 
+			/// <summary>File name of the creation site, or null when unknown.</summary>
 			public string FileName => string.IsNullOrEmpty(FilePath) ? null : Path.GetFileName(FilePath);
 
+			/// <summary>Creation site as <c>file:line</c>, or null when unknown.</summary>
 			public string SourceLocation => string.IsNullOrEmpty(FilePath) ? null : $"{FileName}:{LineNumber}";
 		}
 
@@ -206,13 +209,21 @@ namespace GameLovers.GameData
 		{
 			private readonly ObservableDebugInfo _info;
 
+			/// <summary>Registry id assigned when the observable was first seen.</summary>
 			public int Id => _info.Id;
+			/// <summary>Display name derived from the declaring member.</summary>
 			public string Name => _info.Name;
+			/// <summary>Observable category: Field, Computed, List, Dictionary or HashSet.</summary>
 			public string Kind => _info.Kind;
+			/// <summary>When the observable was registered, in UTC.</summary>
 			public DateTime CreatedAt => _info.CreatedAt;
+			/// <summary>Source file the observable was created in, when known.</summary>
 			public string FilePath => _info.FilePath;
+			/// <summary>Line the observable was created on, when known.</summary>
 			public int LineNumber => _info.LineNumber;
+			/// <summary>File name of the creation site, or null when unknown.</summary>
 			public string FileName => _info.FileName;
+			/// <summary>Creation site as <c>file:line</c>, or null when unknown.</summary>
 			public string SourceLocation => _info.SourceLocation;
 
 			public readonly string Value;

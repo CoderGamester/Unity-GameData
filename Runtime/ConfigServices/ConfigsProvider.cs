@@ -10,6 +10,7 @@ namespace GameLovers.GameData
 		private const int _singleConfigId = 0;
 		private ulong _version;
 
+		/// <summary>Version parsed from the deserialized payload; 0 when it was absent or non-numeric.</summary>
 		public ulong Version => _version;
 		
 		private readonly IDictionary<Type, IEnumerable> _configs = new Dictionary<Type, IEnumerable>();

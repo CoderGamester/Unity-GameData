@@ -28,6 +28,10 @@ namespace GameLovers.GameData
 			return $"[{Key.ToString()},{Value.ToString()}]";
 		}
 	}
+	/// <summary>
+	/// A pair of value types. Use <see cref="Pair{TKey,TValue}"/> when the contents are reference
+	/// types, to avoid copying them on every access.
+	/// </summary>
 	[Serializable]
 	public struct StructPair<TKey, TValue>
 		where TKey : struct
@@ -93,21 +97,33 @@ namespace GameLovers.GameData
 			this.w = w;
 		}
 
+		/// <summary>
+		/// Flattens a <c>Vector4</c> into its serializable form.
+		/// </summary>
 		public static implicit operator Vector4Serializable(Vector4 v)
 		{
 			return new Vector4Serializable(v.x, v.y, v.z, v.w);
 		}
 
+		/// <summary>
+		/// Flattens a <c>Quaternion</c> into the same four-component form.
+		/// </summary>
 		public static implicit operator Vector4Serializable(Quaternion v)
 		{
 			return new Vector4Serializable(v.x, v.y, v.z, v.w);
 		}
 
+		/// <summary>
+		/// Rebuilds the <c>Vector4</c> from its serializable form.
+		/// </summary>
 		public static implicit operator Vector4(Vector4Serializable v)
 		{
 			return new Vector4(v.x, v.y, v.z, v.w);
 		}
 
+		/// <summary>
+		/// Rebuilds a <c>Quaternion</c> from the four-component form.
+		/// </summary>
 		public static implicit operator Quaternion(Vector4Serializable v)
 		{
 			return new Quaternion(v.x, v.y, v.z, v.w);
@@ -134,11 +150,17 @@ namespace GameLovers.GameData
 			this.z = z;
 		}
 
+		/// <summary>
+		/// Flattens a <c>Vector3</c> into its serializable form.
+		/// </summary>
 		public static implicit operator Vector3Serializable(Vector3 v)
 		{
 			return new Vector3Serializable(v.x, v.y, v.z);
 		}
 
+		/// <summary>
+		/// Rebuilds the <c>Vector3</c> from its serializable form.
+		/// </summary>
 		public static implicit operator Vector3(Vector3Serializable v)
 		{
 			return new Vector3(v.x, v.y, v.z);
@@ -163,11 +185,17 @@ namespace GameLovers.GameData
 			this.y = y;
 		}
 
+		/// <summary>
+		/// Flattens a <c>Vector2</c> into its serializable form.
+		/// </summary>
 		public static implicit operator Vector2Serializable(Vector2 v)
 		{
 			return new Vector2Serializable(v.x, v.y);
 		}
 
+		/// <summary>
+		/// Rebuilds the <c>Vector2</c> from its serializable form.
+		/// </summary>
 		public static implicit operator Vector2(Vector2Serializable v)
 		{
 			return new Vector3(v.x, v.y);
@@ -194,11 +222,17 @@ namespace GameLovers.GameData
 			this.z = z;
 		}
 
+		/// <summary>
+		/// Flattens a <c>Vector3Int</c> into its serializable form.
+		/// </summary>
 		public static implicit operator Vector3IntSerializable(Vector3Int v)
 		{
 			return new Vector3IntSerializable(v.x, v.y, v.z);
 		}
 
+		/// <summary>
+		/// Rebuilds the <c>Vector3Int</c> from its serializable form.
+		/// </summary>
 		public static implicit operator Vector3Int(Vector3IntSerializable v)
 		{
 			return new Vector3Int(v.x, v.y, v.z);
@@ -223,11 +257,17 @@ namespace GameLovers.GameData
 			this.y = y;
 		}
 
+		/// <summary>
+		/// Flattens a <c>Vector2Int</c> into its serializable form.
+		/// </summary>
 		public static implicit operator Vector2IntSerializable(Vector2Int v)
 		{
 			return new Vector2IntSerializable(v.x, v.y);
 		}
 
+		/// <summary>
+		/// Rebuilds the <c>Vector2Int</c> from its serializable form.
+		/// </summary>
 		public static implicit operator Vector2Int(Vector2IntSerializable v)
 		{
 			return new Vector2Int(v.x, v.y);

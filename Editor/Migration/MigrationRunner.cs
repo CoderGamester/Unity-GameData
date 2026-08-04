@@ -46,8 +46,11 @@ namespace GameLoversEditor.GameData
 			MigrationsApplied = migrationsApplied;
 		}
 
+		/// <summary>A successful run that applied <paramref name="count"/> migrations.</summary>
 		public static MigrationResult Ok(int count) => new MigrationResult(true, $"Applied {count} migration(s)", count);
+		/// <summary>A successful run that found nothing to do.</summary>
 		public static MigrationResult NoMigrations() => new MigrationResult(true, "No migrations needed", 0);
+		/// <summary>A failed run carrying the reason.</summary>
 		public static MigrationResult Error(string message) => new MigrationResult(false, message, 0);
 	}
 

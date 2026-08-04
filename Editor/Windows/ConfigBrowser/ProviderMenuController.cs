@@ -23,6 +23,7 @@ namespace GameLovers.GameData.Editor
 		private IConfigsProvider _provider;
 		private int _selectedProviderId = -1;
 
+		/// <summary>Raised when the user picks a different provider.</summary>
 		public event Action ProviderChanged;
 
 		/// <summary>The currently selected provider, or null when nothing is selected.</summary>

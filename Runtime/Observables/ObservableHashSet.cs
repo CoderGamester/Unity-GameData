@@ -241,6 +241,10 @@ namespace GameLovers.GameData
 			}
 		}
 
+		/// <summary>
+		/// Enumerates the underlying set directly, so mutating the observable during enumeration throws
+		/// just as it would on a plain <see cref="HashSet{T}"/>.
+		/// </summary>
 		public IEnumerator<T> GetEnumerator()
 		{
 			return _hashSet.GetEnumerator();
