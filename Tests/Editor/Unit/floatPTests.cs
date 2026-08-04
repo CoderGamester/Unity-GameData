@@ -118,7 +118,7 @@ namespace GameLovers.GameData.Tests
 
 		[Test]
 		// ADMIT: none - `(floatP)1.23f` invokes the same implicit float operator as the sibling test.
-		// RCR: none exists - A5 duplicate of ImplicitConversion_FromFloat: identical causal chain
+		// RCR: OWED, not exempt - A5 duplicate of ImplicitConversion_FromFloat: identical causal chain
 		// (operator floatP(float) + operator float(floatP)); every mutation reddens both.
 		public void ExplicitConversion_ToFloat()
 		{

@@ -185,7 +185,17 @@ symbol appears anywhere in the causal chain behind the assertion.
 **Two consequences, stated so RCR does not become theatre:**
 
 - A test with no `// RCR:` line — and no UNFALSIFIABLE exemption — is not trusted
-  coverage. In an audit it is a suspect by default.
+  coverage. In an audit it is a suspect by default. **`Smoke/` is exempt here too**, on the
+  same directory basis as §1: its defect class is "the assembly no longer loads", which has
+  no one-line mutation, so demanding an RCR line there flags those fixtures forever. The
+  exemption is the directory, not the assertion shape.
+- **"Unannotated" is three states, not one, and they need different actions.** A test with no
+  `// RCR:` line may have been (a) observed RED with the write-back lost, (b) seen reddening
+  only as collateral inside another test's blast radius, or (c) never probed. Only (c) needs a
+  probe; (a) needs the recorded observation written back; (b) is SHARED-PATH evidence, not a
+  unique pin. Check `.test-all/rcr/` before probing, and never write prepared annotation text
+  without a matching `RED-OK` for that test — prepared text also exists for tests that were
+  never probed, and writing it fabricates a verified claim.
 - **Benchmarks are included, inverted:** a performance test must be observed
   *changing its number* when the measured operation is removed from the measured
   body. A benchmark whose measured region does not contain the workload is a
@@ -453,6 +463,8 @@ The count of OPEN rows is the honest coverage-debt number.
 |---|---|---|---|
 | `MinLengthAttribute` non-`ICollection` `IEnumerable` counting fallback (`Runtime/Validation/`) | OPEN | Owed: no test reaches this branch at all — every existing case passes an array or `ICollection`, which take the earlier path. | 2026-08-04 |
 | `ObservableDictionary` global-observer fan-out under `ObservableUpdateFlag.Both` (`Runtime/Observables/ObservableDictionary.cs`) | CLOSED | Closed 2026-08-04 by `c111ba2`: the four `StopObserv*` fixtures now set `ObservableUpdateFlag.Both` before registering, so `Add`/indexer-set/`Remove` reach `_updateActions`. All four observed RED against the fan-out removal. | 2026-08-04 |
+| 84 production edits reddening only collaterally (`Runtime/Math/**`, `Runtime/ConfigServices/**`) | OPEN | Measured 2026-08-04 from `.test-all/rcr/unowned-edits.json`: 84 edits produced RED but never an `isolated` verdict — top files `MathfloatP.cs` (15), `floatP.cs` (13), `ConfigsProvider.cs` (7). **Not 84 missing tests.** These lines are exercised and a regression IS caught; no test pins them *uniquely*, so a failure names ~40 tests instead of one. For `floatP`/`MathfloatP` that is inherent — every arithmetic fixture routes through the operators and `Abs`, so mutating one reddens all of them and an isolated pin is not constructible. Owed: not new tests wholesale, but a judgement pass on the non-primitive subset (`ConfigsProvider`, `ConfigsSerializer`, `ObservableDictionary`) where a focused test would localise failures cheaply. | 2026-08-04 |
+| Five self-diagnosed A3/A5/D2 tests laundered under an UNFALSIFIABLE heading (`Tests/Editor/Unit/MathfloatPTest.cs`, `floatPTests.cs`) | OPEN | Found 2026-08-04 by an adversarial re-read of all 22 exemptions. Four `MathfloatP` determinism tests (`Determinism_VerifyRawValues`, `AllTrigFunctions_RawValueConsistent`, `AllPowerFunctions_RawValueConsistent`, `CrossPlatform_Determinism_ComplexExpression`) and `floatPTests.ExplicitConversion_ToFloat` carried comments literally reading *A3 reject* / *A5 duplicate* / *D2 overclaim* under `// RCR: none exists` — exactly what §2 says "launders a test §1 would never have admitted". Each compares one in-process expression against itself, so no production edit can redden it. Relabelled `OWED, not exempt` so they no longer count as exemptions. Owed: the four determinism tests should assert hard-coded expected `RawValue` literals (a golden-value pin is genuinely valuable for a deterministic-math package, and is what the comments themselves propose) and `ExplicitConversion_ToFloat` should be deleted naming `ImplicitConversion_FromFloat` as survivor. Both need a Unity run — the literals must be captured, and the deletion's A5 claim re-proven. | 2026-08-04 |
 
 ## 14. Update Policy
 

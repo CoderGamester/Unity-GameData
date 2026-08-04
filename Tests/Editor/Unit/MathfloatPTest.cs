@@ -275,7 +275,7 @@ namespace GameLovers.GameData.Tests
 
 		[Test]
 		// ADMIT: none - the test compares one in-process expression against itself.
-		// RCR: none exists - A3 reject: every edit to floatP/MathfloatP moves raw1 and raw2 together, so
+		// RCR: OWED, not exempt - A3 reject: every edit to floatP/MathfloatP moves raw1 and raw2 together, so
 		// `raw1 == raw2` pins C# purity, not package behaviour. Assert a hard-coded raw literal instead.
 		public void Determinism_VerifyRawValues()
 		{
@@ -588,7 +588,7 @@ namespace GameLovers.GameData.Tests
 
 		[Test]
 		// ADMIT: none - Sin/Cos/Tan are each called twice on the same input and compared to themselves.
-		// RCR: none exists - A3 reject: any mutation changes both calls identically, so no production edit
+		// RCR: OWED, not exempt - A3 reject: any mutation changes both calls identically, so no production edit
 		// can redden it. Assert hard-coded expected RawValues to make it falsifiable.
 		public void AllTrigFunctions_RawValueConsistent()
 		{
@@ -609,7 +609,7 @@ namespace GameLovers.GameData.Tests
 
 		[Test]
 		// ADMIT: none - Sqrt/Log/Exp are each called twice on the same input and compared to themselves.
-		// RCR: none exists - A3 reject: any mutation changes both calls identically, so no production edit
+		// RCR: OWED, not exempt - A3 reject: any mutation changes both calls identically, so no production edit
 		// can redden it. Assert hard-coded expected RawValues to make it falsifiable.
 		public void AllPowerFunctions_RawValueConsistent()
 		{
@@ -631,7 +631,7 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		// ADMIT: none - the name promises cross-platform determinism; the body compares two evaluations of
 		// the same expression in one process.
-		// RCR: none exists - D2 overclaim: no production edit can separate result1 from result2. Strengthen
+		// RCR: OWED, not exempt - D2 overclaim: no production edit can separate result1 from result2. Strengthen
 		// by asserting the expected RawValue literal, or rename to what it actually checks.
 		public void CrossPlatform_Determinism_ComplexExpression()
 		{
