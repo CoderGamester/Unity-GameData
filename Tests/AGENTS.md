@@ -437,7 +437,7 @@ The count of OPEN rows is the honest coverage-debt number.
 | Symbol (file:line) | State | Reason / Owed | Recorded |
 |---|---|---|---|
 | `MinLengthAttribute` non-`ICollection` `IEnumerable` counting fallback (`Runtime/Validation/`) | OPEN | Owed: no test reaches this branch at all — every existing case passes an array or `ICollection`, which take the earlier path. | 2026-08-04 |
-| `ObservableDictionary` global-observer fan-out under `ObservableUpdateFlag.Both` (`Runtime/Observables/ObservableDictionary.cs`) | OPEN | Owed: the four `StopObserv*` fixtures register global observers but leave the flag at the constructor default `KeyUpdateOnly`, under which `Add`/indexer-set/`Remove` skip `_updateActions` entirely — all four were observed GREEN against the removal mutation. They need `ObservableUpdateFlag.Both` set in the fixture to become falsifiable. | 2026-08-04 |
+| `ObservableDictionary` global-observer fan-out under `ObservableUpdateFlag.Both` (`Runtime/Observables/ObservableDictionary.cs`) | CLOSED | Closed 2026-08-04 by `c111ba2`: the four `StopObserv*` fixtures now set `ObservableUpdateFlag.Both` before registering, so `Add`/indexer-set/`Remove` reach `_updateActions`. All four observed RED against the fan-out removal. | 2026-08-04 |
 
 ## 14. Update Policy
 
