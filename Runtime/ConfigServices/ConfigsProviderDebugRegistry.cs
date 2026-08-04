@@ -18,6 +18,7 @@ namespace GameLovers.GameData
 	public static class ConfigsProviderDebugRegistry
 	{
 #if UNITY_EDITOR
+		/// <summary>Identity and creation site of a tracked configs provider. Editor introspection only — see AGENTS.md §4.</summary>
 		internal readonly struct ProviderDebugInfo
 		{
 			public readonly int Id;
@@ -35,7 +36,9 @@ namespace GameLovers.GameData
 				LineNumber = lineNumber;
 			}
 
+			/// <summary>File name of the creation site, or null when unknown.</summary>
 			public string FileName => string.IsNullOrEmpty(FilePath) ? null : Path.GetFileName(FilePath);
+			/// <summary>Creation site as <c>file:line</c>, or null when unknown.</summary>
 			public string SourceLocation => string.IsNullOrEmpty(FilePath) ? null : $"{FileName}:{LineNumber}";
 		}
 
@@ -117,12 +120,19 @@ namespace GameLovers.GameData
 		{
 			private readonly ProviderDebugInfo _info;
 
+			/// <summary>Registry id assigned when the provider was first seen.</summary>
 			public int Id => _info.Id;
+			/// <summary>Display name derived from the creation site.</summary>
 			public string Name => _info.Name;
+			/// <summary>When the provider was registered, in UTC.</summary>
 			public DateTime CreatedAt => _info.CreatedAt;
+			/// <summary>Source file the provider was created in, when known.</summary>
 			public string FilePath => _info.FilePath;
+			/// <summary>Line the provider was created on, when known.</summary>
 			public int LineNumber => _info.LineNumber;
+			/// <summary>File name of the creation site, or null when unknown.</summary>
 			public string FileName => _info.FileName;
+			/// <summary>Creation site as <c>file:line</c>, or null when unknown.</summary>
 			public string SourceLocation => _info.SourceLocation;
 
 			public readonly int ConfigTypeCount;

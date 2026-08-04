@@ -27,7 +27,9 @@ namespace GameLovers.GameData.Editor
 		private JsonViewerElement _outputJson;
 		private Label _logLabel;
 
+		/// <summary>Raised by the preview button.</summary>
 		public event Action PreviewRequested;
+		/// <summary>Raised by the apply button.</summary>
 		public event Action ApplyRequested;
 
 		public MigrationPanelView()

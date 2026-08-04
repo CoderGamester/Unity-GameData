@@ -17,6 +17,10 @@ namespace GameLovers.GameData.Tests.Boundary
 		}
 
 		[Test]
+		// ADMIT: ConfigsProvider.GetConfigsList<T> must project exactly the container's Values — an empty
+		// registration yields an empty list, not a one-element default.
+		// RCR: ConfigsProvider.cs GetConfigsList<T> — add a `{ default(T) }` initialiser to the returned list → RED
+		// (Count is 1, not 0). Also reddens the id-keyed count assertions in ConfigsProviderTest. 2026-08-02
 		public void EmptyConfigs_GetConfigsList_ReturnsEmptyList()
 		{
 			_provider.AddConfigs<int>(x => x, new List<int>());
@@ -32,6 +36,10 @@ namespace GameLovers.GameData.Tests.Boundary
 		}
 
 		[Test]
+		// ADMIT: ConfigsProvider.AddConfigs must reject a null referenceIdResolver with ArgumentNullException before
+		// it is invoked in the fill loop.
+		// RCR: ConfigsProvider.cs AddConfigs — disable the `referenceIdResolver == null` guard → RED
+		// (NullReferenceException arrives instead of the expected ArgumentNullException). 2026-08-02
 		public void NullResolver_ThrowsArgumentNullException()
 		{
 			Assert.Throws<ArgumentNullException>(() => _provider.AddConfigs<int>(null, new List<int> { 1 }));

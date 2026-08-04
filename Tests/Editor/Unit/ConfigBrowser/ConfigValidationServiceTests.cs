@@ -14,6 +14,10 @@ namespace GameLovers.GameData.Tests
 	public class ConfigValidationServiceTests
 	{
 		[Test]
+		// ADMIT: ConfigValidationService reports a NULL ConfigId for singleton entries (id 0) and the real id for
+		// keyed ones, so the Config Browser can label them differently.
+		// RCR: ConfigValidationService.cs AddValidationErrors — drop the `configId == SingleConfigId ? null :`
+		// ternary → RED (no error carries a null ConfigId). 2026-08-02
 		public void ValidateAll_ReportsFieldsAndConfigIds()
 		{
 			// ConfigsProvider keys storage by Type, so a singleton and a keyed collection must
@@ -50,6 +54,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigValidationService.ValidateSingle must validate a well-formed ConfigSelection rather than
+		// bailing out through the IsValid guard.
+		// RCR: ConfigValidationService.cs ValidateSingle — make the `!selection.IsValid` guard unconditional
+		// (`return errors;`) → RED (0 errors, not 3). 2026-08-02
 		public void ValidateSingle_UsesSelectionConfigId()
 		{
 			var invalid = new MockValidatableConfigBuilder().Invalid().Build();

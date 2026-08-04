@@ -43,5 +43,20 @@ namespace GameLovers.GameData
 				_valueData.Add(item.Value);
 			}
 		}
+
+		/// <summary>The YAML-serialized key list. Editor introspection only — see AGENTS.md §4.</summary>
+		internal List<TKey> KeyDataInternal => _keyData;
+		/// <summary>The YAML-serialized value list. Editor introspection only — see AGENTS.md §4.</summary>
+		internal List<TValue> ValueDataInternal => _valueData;
+
+		/// <summary>
+		/// Replaces the serialized backing lists, so a test can stage the exact state Unity's YAML
+		/// deserializer would produce before OnAfterDeserialize runs.
+		/// </summary>
+		internal void SetSerializedLists(List<TKey> keys, List<TValue> values)
+		{
+			_keyData = keys;
+			_valueData = values;
+		}
 	}
 }

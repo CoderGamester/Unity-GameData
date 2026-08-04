@@ -3,8 +3,7 @@
     "rootNamespace": "GameLovers.GameData.Samples.Migration",
     "references": [
         "GameLovers.GameData",
-        "Unity.TextMeshPro",
-        "UniTask"
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

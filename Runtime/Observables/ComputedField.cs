@@ -208,6 +208,9 @@ namespace GameLovers.GameData
 			_dependencyActions.Remove(onDependencyChanged);
 		}
 
+		/// <summary>
+		/// Unsubscribes from every tracked dependency.
+		/// </summary>
 		public void Dispose()
 		{
 			foreach (var dependency in _dependencies)
@@ -302,22 +305,29 @@ namespace GameLovers.GameData
 		}
 	}
 
+	/// <summary>
+	/// Thread-static stack of the computations currently evaluating, so a dependency read can attach
+	/// itself to whichever computed field is asking for it.
+	/// </summary>
 	internal static class ComputedTracker
 	{
 		[ThreadStatic]
 		private static Stack<IComputedFieldInternal> _activeComputations;
 
+		/// <summary>Pushes a computation, so subsequent reads register as its dependencies.</summary>
 		public static void BeginTracking(IComputedFieldInternal computation)
 		{
 			_activeComputations ??= new Stack<IComputedFieldInternal>();
 			_activeComputations.Push(computation);
 		}
 
+		/// <summary>Pops the innermost computation.</summary>
 		public static void EndTracking()
 		{
 			_activeComputations?.Pop();
 		}
 
+		/// <summary>Registers a read against the innermost computation; a no-op when nothing is tracking.</summary>
 		public static void OnRead(IComputedDependency dependency)
 		{
 			// Fast path: no tracking in progress (most common case)

@@ -1,5 +1,8 @@
 namespace GameLovers.GameData
 {
+	/// <summary>
+	/// What happened to an observable collection's entry.
+	/// </summary>
 	public enum ObservableUpdateType
 	{
 		Added,
@@ -7,6 +10,9 @@ namespace GameLovers.GameData
 		Removed
 	}
 
+	/// <summary>
+	/// Which subscribers an observable dictionary notifies on a change.
+	/// </summary>
 	public enum ObservableUpdateFlag
 	{
 		// Updates all subsribers that didn't specify the key index

@@ -14,6 +14,10 @@ namespace GameLovers.GameData.Tests.PlayMode.Integration
 		public class MockHeroConfigSO : ConfigsScriptableObject<int, string> { }
 
 		[Test]
+		// ADMIT: ConfigsScriptableObject<TId,TAsset>.OnAfterDeserialize must publish the dictionary it just built
+		// through ConfigsDictionary — the list is the serialized form, the dictionary is the lookup form.
+		// RCR: ConfigsScriptableObject.cs OnAfterDeserialize — wrap an empty dictionary instead of `dictionary` →
+		// RED (Count is 0, not 2). Also reddens OnAfterDeserialize_DuplicateKeys_LogsError. 2026-08-02
 		public void OnAfterDeserialize_BuildsDictionary()
 		{
 			var so = ScriptableObject.CreateInstance<MockHeroConfigSO>();
@@ -32,6 +36,10 @@ namespace GameLovers.GameData.Tests.PlayMode.Integration
 		}
 
 		[Test]
+		// ADMIT: ConfigsScriptableObject<TId,TAsset>.OnAfterDeserialize uses TryAdd so a duplicate key is SKIPPED
+		// with a logged error — first-one-wins, never a silent overwrite.
+		// RCR: ConfigsScriptableObject.cs OnAfterDeserialize — replace the TryAdd guard with an unconditional
+		// indexer assignment → RED (no expected LogError arrives and the value becomes "Second"). 2026-08-02
 		public void OnAfterDeserialize_DuplicateKeys_LogsError()
 		{
 			var so = ScriptableObject.CreateInstance<MockHeroConfigSO>();

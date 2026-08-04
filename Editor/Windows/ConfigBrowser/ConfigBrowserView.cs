@@ -38,14 +38,23 @@ namespace GameLovers.GameData.Editor
 		private Button _clearValidationFilterButton;
 		private ScrollView _validationList;
 
+		/// <summary>Raised as the user edits the search box.</summary>
 		public event Action<string> SearchChanged;
+		/// <summary>Raised by the validate-all button.</summary>
 		public event Action ValidateAllRequested;
+		/// <summary>Raised by the export-all button.</summary>
 		public event Action ExportAllRequested;
+		/// <summary>Raised by the validate-selection button.</summary>
 		public event Action ValidateSelectedRequested;
+		/// <summary>Raised by the export-selection button.</summary>
 		public event Action ExportSelectedRequested;
+		/// <summary>Raised when the user clears the validation filter.</summary>
 		public event Action ClearValidationFilterRequested;
+		/// <summary>Raised with the newly selected config nodes.</summary>
 		public event Action<IEnumerable<object>> TreeSelectionChanged;
+		/// <summary>Raised with the config name and optional row index of a clicked validation error.</summary>
 		public event Action<string, int?> ValidationRowClicked;
+		/// <summary>Raised when the user switches tab.</summary>
 		public event Action<bool> TabChanged;
 
 		public ConfigBrowserView(VisualElement root)

@@ -9,6 +9,10 @@ namespace GameLovers.GameData.Tests.Integration
 	public class ObservableComputedIntegrationTest
 	{
 		[Test]
+		// ADMIT: ObservableList<T>.Count.get must call ComputedTracker.OnRead, or a ComputedField that reads Count
+		// never registers the list as a dependency and goes stale on Add.
+		// RCR: ObservableList.cs Count.get — delete `ComputedTracker.OnRead(this);` → RED (computed.Value stays 122
+		// after list.Add(3)). 2026-08-02
 		public void ComputedField_WithMultipleObservables_TracksAll()
 		{
 			var field1 = new ObservableField<int>(10);
@@ -27,6 +31,10 @@ namespace GameLovers.GameData.Tests.Integration
 		}
 
 		[Test]
+		// ADMIT: ComputedField<T>'s IBatchable.ResumeNotifications must fire the deferred InvokeUpdate, so a batch
+		// that spans several dependencies recomputes exactly once at the end.
+		// RCR: ComputedField.cs IBatchable.ResumeNotifications — delete the `InvokeUpdate();` call → RED (callCount
+		// is 0, not 1). Also reddens ComputedFieldTest.BeginBatch_SuppressesRecomputation. 2026-08-02
 		public void BatchUpdates_WithComputedField_SingleRecalculation()
 		{
 			var field1 = new ObservableField<int>(10);
@@ -59,6 +67,11 @@ namespace GameLovers.GameData.Tests.Integration
 		}
 
 		[Test]
+		// ADMIT: a ComputedField acting as another's dependency must record the downstream subscriber, or the dirty
+		// flag stops at the first link.
+		// RCR: ComputedField.cs IComputedDependency.Subscribe — comment out
+		// `_dependencyActions.Add(onDependencyChanged);` → RED (c2 still reports 12 after the root changes). A5 note:
+		// shared with ComputedFieldTest.ChainedComputed_MultiLevelDependencies. 2026-08-02
 		public void ChainedComputedFields_PropagateDirtyFlag()
 		{
 			var field = new ObservableField<int>(10);

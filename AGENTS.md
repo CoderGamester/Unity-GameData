@@ -8,7 +8,6 @@
 - **Runtime asmdef**: `Runtime/GameLovers.GameData.asmdef` (**allowUnsafeCode = true**)
 - **Dependencies**
   - `com.unity.nuget.newtonsoft-json` (3.2.1): runtime JSON serializer + editor tools/tests
-  - `com.cysharp.unitask` (2.5.10): async API in `Runtime/ConfigServices/Interfaces/IConfigBackendService.cs`
   - `com.unity.textmeshpro` (3.0.6): used by **Samples~** UI scripts (`using TMPro;`)
 
 This file is for **agents/contributors**. User-facing usage lives in `README.md`.
@@ -23,7 +22,7 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 ## 3. Key entry points (common navigation)
 - **Configs**: `Runtime/ConfigServices/ConfigsProvider.cs`, `Runtime/ConfigServices/ConfigsSerializer.cs`
 - **Security**: `Runtime/ConfigServices/ConfigTypesBinder.cs` (whitelist binder for safe deserialization)
-- **Interfaces**: `Runtime/ConfigServices/Interfaces/*` (notably `IConfigsProvider`, `IConfigsAdder`, `IConfigBackendService`)
+- **Interfaces**: `Runtime/ConfigServices/Interfaces/*` (notably `IConfigsProvider`, `IConfigsAdder`)
 - **ScriptableObject containers**: `Runtime/ConfigServices/ConfigsScriptableObject.cs` (+ `Interfaces/IConfigsContainer.cs`)
 - **Editor windows**: `Editor/Windows/ConfigBrowserWindow.cs`, `Editor/Windows/ObservableDebugWindow.cs`
 - **Migrations**: `Editor/Migration/*` (`MigrationRunner`, `IConfigMigration`, preview helpers)
@@ -31,7 +30,7 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 - **Observable core types**: `Runtime/Observables/ObservableField.cs`, `ObservableList.cs`, `ObservableDictionary.cs`, `ComputedField.cs`
 - **Deterministic math**: `Runtime/Math/floatP.cs`, `Runtime/Math/MathfloatP.cs`
 - **Serialization helpers**: `Runtime/Serialization/*` (Unity dict, type serialization, converters)
-- **Tests**: `Tests/Editor/*` (Unit/Integration/Regression/Security/Performance/Smoke/Boundary)
+- **Tests**: `Tests/Editor/*` (Unit/Integration/Security/Performance/Smoke/Boundary)
 
 ## 4. Important behaviors / gotchas (keep in sync with code)
 - **Singleton vs id-keyed**: `GetConfig<T>()` only for singleton; use `GetConfig<T>(int)` for id-keyed.
@@ -50,6 +49,7 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 - **ObservableDictionary update flags**: update flags change which subscribers are notified (key-only vs global vs both).
 - **Missing key calls can throw**: methods that target a specific key generally assume the key exists.
 - **EnumSelector stability**: check validity (`HasValidSelection`) if enums were changed/renamed.
+- **`SerializableType<T>` struct-boxing pattern**: `OnAfterDeserialize` body lives in private `OnAfterDeserializeImpl()`; the explicit `ISerializationCallbackReceiver.OnAfterDeserialize()` delegates to it. Reason: calling `((ISerializationCallbackReceiver)structInstance).OnAfterDeserialize()` boxes the struct, and any mutation to `_value` happens on the box — invisible to the caller. The test factory `FromSerializedNames` mutates `this` in-place via `OnAfterDeserializeImpl()` to dodge this. Do **not** collapse `OnAfterDeserializeImpl` back into the interface implementation.
 - **No manual `.meta` edits**: Unity owns `*.meta` generation.
 
 ## 5. Editor tools (menu paths)
@@ -58,12 +58,19 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 - **Config migrations**: shown inside Config Browser when migrations exist
 
 ## 6. Tests (how to run / where to add)
+- Before reading, editing, or creating any file in `Tests/`, you **MUST** read [`Tests/AGENTS.md`](Tests/AGENTS.md) first.
 - **EditMode** tests: Unity Test Runner → EditMode (tests live under `Tests/Editor/*`)
   - `Unit/` for pure logic (preferred)
   - `Integration/` for editor/tooling interactions
   - `Security/` for serializer safety expectations
   - `Performance/` only when measuring allocations/hot paths
-- **PlayMode** tests: Unity Test Runner → PlayMode (tests live under `Tests/PlayMode/*`) — use for tests that require a running scene or async UniTask flows
+- **PlayMode** tests: Unity Test Runner → PlayMode (tests live under `Tests/PlayMode/*`) — use for tests that require a running scene or Unity coroutine/frame timing
+- **Internal test seams** (`Runtime/AssemblyInfo.cs` declares `[InternalsVisibleTo("GameLovers.GameData.Editor.Tests")]`): use these instead of `BindingFlags.NonPublic` reflection on private fields.
+  - `EnumSelector<T>.SetSelectionString(string)` — simulates a stale serialized enum-name string that the public `SetSelection(T)` API can't reach (since `T` is constrained to valid enum members).
+  - `SerializableType<T>.FromSerializedNames(className, assemblyName)` — static factory that simulates Unity's deserialization order (private serialized fields populated, then `OnAfterDeserializeImpl` resolves) without reflection or struct-boxing dance.
+  - `UnitySerializedDictionary<TKey,TValue>.SetSerializedLists(List<TKey>, List<TValue>)` + read-only `KeyDataInternal` / `ValueDataInternal` — read/write the YAML-serializer-populated backing lists.
+- **`ConfigsProvider.AddAllConfigs` / `UpdateTo` test signature**: both take `IReadOnlyDictionary<Type, IEnumerable>` requiring **non-generic** `System.Collections.IEnumerable`. When the test file imports `System.Collections.Generic`, fully-qualify `System.Collections.IEnumerable` to avoid resolution clash with `IEnumerable<T>` (existing `UpdateTo_*` test in `ConfigsProviderTest.cs` demonstrates this).
+- **Dual-fixture pattern for resolver/derived observable types**: `ObservableResolverField<T>` (and any future resolver/derived types that override `ObservableField<T>`'s public surface) are tested jointly with their base class via paired `[SetUp]` fields in `ObservableFieldTest.cs` (e.g. `_observableField` + `_observableResolverField`), NOT in dedicated `*ResolverFieldTest.cs` files. Most `[Test]` methods exercise both fields with a single assertion pair — see `ValueCheck` / `ValueSetCheck` / `ObserveCheck` / `RebindCheck_KeepsObservers`. Before proposing or accepting new tests for the resolver class as "missing coverage", grep test bodies for `_observableResolverField` and `ObservableResolverField<` references in `Tests/Editor/Unit/`; covered behavior shouldn't get a duplicate dedicated test file. (Coverage audits — including LLM-driven ones like `unity-tests-audit` — have produced false-positive duplicate stubs against this pattern.)
 
 ## 7. Common change workflows
 - **Add config type**: `[Serializable]` (or `[IgnoreServerSerialization]`), decide singleton vs id-keyed, add tests.
@@ -85,7 +92,6 @@ This file is for **agents/contributors**. User-facing usage lives in `README.md`
 
 ## 10. External package sources (preferred for API lookups)
 - Newtonsoft: `Library/PackageCache/com.unity.nuget.newtonsoft-json/`
-- UniTask: `Library/PackageCache/com.cysharp.unitask/`
 - TextMeshPro: `Library/PackageCache/com.unity.textmeshpro/`
 
 ## 11. Coding standards / assembly boundaries

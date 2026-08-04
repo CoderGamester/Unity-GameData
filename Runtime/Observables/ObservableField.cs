@@ -41,6 +41,9 @@ namespace GameLovers.GameData
 		/// </summary>
 		void StopObservingAll(object subscriber = null);
 
+		/// <summary>
+		/// Notifies this field's observers without changing the value.
+		/// </summary>
 		/// <remarks>
 		/// It invokes any update method that is observing to this field
 		/// </remarks>
@@ -101,6 +104,9 @@ namespace GameLovers.GameData
 			EditorDebug_Register();
 		}
 
+		/// <summary>
+		/// Reads the current value, so the field can be used directly where a <typeparamref name="T"/> is expected.
+		/// </summary>
 		public static implicit operator T(ObservableField<T> value) => value.Value;
 
 		/// <inheritdoc />
@@ -199,6 +205,9 @@ namespace GameLovers.GameData
 		/// </summary>
 		protected virtual T GetCurrentValue() => _value;
 
+		/// <summary>
+		/// Notifies subscribers. Suppressed while a batch is open, which then fires once on resume.
+		/// </summary>
 		protected void InvokeUpdate(T previousValue)
 		{
 			if (_isBatching)

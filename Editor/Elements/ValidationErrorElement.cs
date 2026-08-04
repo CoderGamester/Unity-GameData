@@ -16,6 +16,7 @@ namespace GameLovers.GameData.Editor
 		private string _configType;
 		private int? _configId;
 
+		/// <summary>Raised with the config name and optional row index when the row is clicked.</summary>
 		public event Action<string, int?> Clicked;
 
 		public ValidationErrorElement()

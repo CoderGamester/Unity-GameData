@@ -7,6 +7,7 @@ namespace GameLovers.GameData
 	/// </summary>
 	public interface IConfig
 	{
+		/// <summary>Identifier this config is keyed by inside its container.</summary>
 		int ConfigId { get; }
 	}
 
@@ -16,6 +17,7 @@ namespace GameLovers.GameData
 	/// </summary>
 	public interface IConfigsContainer<T>
 	{
+		/// <summary>The imported config rows.</summary>
 		List<T> Configs { get; set; }
 	}
 
@@ -25,6 +27,7 @@ namespace GameLovers.GameData
 	/// </summary>
 	public interface ISingleConfigContainer<T>
 	{
+		/// <summary>The single imported config.</summary>
 		T Config { get; set; }
 	}
 

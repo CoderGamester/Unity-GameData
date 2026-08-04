@@ -33,6 +33,7 @@ namespace GameLovers.GameData
 	public static class ObservableDebugRegistry
 	{
 #if UNITY_EDITOR
+		/// <summary>Identity and creation site of a tracked observable. Editor introspection only — see AGENTS.md §4.</summary>
 		internal readonly struct ObservableDebugInfo
 		{
 			public readonly int Id;
@@ -52,8 +53,10 @@ namespace GameLovers.GameData
 				LineNumber = lineNumber;
 			}
 
+			/// <summary>File name of the creation site, or null when unknown.</summary>
 			public string FileName => string.IsNullOrEmpty(FilePath) ? null : Path.GetFileName(FilePath);
 
+			/// <summary>Creation site as <c>file:line</c>, or null when unknown.</summary>
 			public string SourceLocation => string.IsNullOrEmpty(FilePath) ? null : $"{FileName}:{LineNumber}";
 		}
 
@@ -62,13 +65,10 @@ namespace GameLovers.GameData
 		private static readonly List<WeakReference<object>> _refs = new List<WeakReference<object>>();
 
 		/// <summary>
-		/// Registers an observable instance with the debug registry.
-		/// Called automatically by observable constructors in editor builds.
+		/// Registers an observable instance with the debug registry, where <paramref name="kind"/> is one of
+		/// Field, Computed, List, Dictionary or HashSet. Called automatically by observable constructors in
+		/// editor builds.
 		/// </summary>
-		/// <param name="instance">The observable instance to register.</param>
-		/// <param name="kind">The observable type category (Field, Computed, List, Dictionary, HashSet).</param>
-		/// <param name="valueGetter">Delegate to get the current value as a string.</param>
-		/// <param name="subscriberCountGetter">Delegate to get the current subscriber count.</param>
 		internal static void Register(
 			object instance,
 			string kind,
@@ -156,9 +156,8 @@ namespace GameLovers.GameData
 			return (name, filePath, lineNumber);
 		}
 
-		/// <summary>
-		/// Attempts to extract the field or property name from source code at the given location.
-		/// </summary>
+		// Reads the declaring line out of the source file, so the debugger can label an observable by the
+		// member that holds it rather than by its type alone.
 		private static string TryExtractMemberName(string filePath, int lineNumber)
 		{
 			try
@@ -210,13 +209,21 @@ namespace GameLovers.GameData
 		{
 			private readonly ObservableDebugInfo _info;
 
+			/// <summary>Registry id assigned when the observable was first seen.</summary>
 			public int Id => _info.Id;
+			/// <summary>Display name derived from the declaring member.</summary>
 			public string Name => _info.Name;
+			/// <summary>Observable category: Field, Computed, List, Dictionary or HashSet.</summary>
 			public string Kind => _info.Kind;
+			/// <summary>When the observable was registered, in UTC.</summary>
 			public DateTime CreatedAt => _info.CreatedAt;
+			/// <summary>Source file the observable was created in, when known.</summary>
 			public string FilePath => _info.FilePath;
+			/// <summary>Line the observable was created on, when known.</summary>
 			public int LineNumber => _info.LineNumber;
+			/// <summary>File name of the creation site, or null when unknown.</summary>
 			public string FileName => _info.FileName;
+			/// <summary>Creation site as <c>file:line</c>, or null when unknown.</summary>
 			public string SourceLocation => _info.SourceLocation;
 
 			public readonly string Value;
@@ -247,9 +254,6 @@ namespace GameLovers.GameData
 				_subscriberCountGetter = subscriberCountGetter;
 			}
 
-			/// <summary>
-			/// Creates a snapshot from this entry with current live data.
-			/// </summary>
 			public EntrySnapshot ToSnapshot(object instance)
 			{
 				string value;

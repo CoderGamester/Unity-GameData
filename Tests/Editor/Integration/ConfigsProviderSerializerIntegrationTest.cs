@@ -35,6 +35,10 @@ namespace GameLovers.GameData.Tests.Integration
 		}
 
 		[Test]
+		// ADMIT: ColorJsonConverter.WriteJson must prefix the hex payload with '#', or ColorUtility cannot parse it
+		// back and every colour field silently deserializes to white.
+		// RCR: ColorJsonConverter.cs WriteJson — drop the `"#" +` prefix → RED (Theme comes back white, not blue).
+		// Also reddens ConfigsSerializerTest.RoundTrip_UnityTypes_PreservesValues. 2026-08-02
 		public void FullWorkflow_AddSerializeDeserializeAccess()
 		{
 			var heroes = new List<HeroConfig>
@@ -61,6 +65,10 @@ namespace GameLovers.GameData.Tests.Integration
 		}
 
 		[Test]
+		// ADMIT: ConfigsProvider.SetVersion overwrites unconditionally — Deserialize applies whatever version the
+		// payload carries, including an older one; ordering is the caller's job, not the provider's.
+		// RCR: ConfigsProvider.cs SetVersion — change `_version = version;` to `Math.Max(_version, version)` → RED
+		// (the v5 payload leaves Version at 10). 2026-08-02
 		public void BackendSync_VersionComparison()
 		{
 			_provider.UpdateTo(10, new Dictionary<Type, System.Collections.IEnumerable>());

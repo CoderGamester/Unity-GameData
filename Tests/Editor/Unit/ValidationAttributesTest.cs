@@ -12,6 +12,9 @@ namespace GameLovers.GameData.Tests
 		#region RequiredAttribute Tests
 
 		[TestCase(null, false, Description = "Null value fails")]
+		// ADMIT: RequiredAttribute.IsValid rejects only NULL and the EMPTY string — a non-empty string must pass.
+		// RCR: RequiredAttribute.cs IsValid — drop the `&& string.IsNullOrEmpty(s)` term from the string guard → RED
+		// (the "Hello" row expects true and gets false). 2026-08-02
 		[TestCase("", false, Description = "Empty string fails")]
 		[TestCase("Hello", true, Description = "Non-empty string passes")]
 		[TestCase(42, true, Description = "Integer passes")]
@@ -23,6 +26,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: RequiredAttribute.IsValid accepts any non-null, non-empty-string value.
+		// RCR: RequiredAttribute.cs IsValid — force the null arm with `if (true)` in place of `if (value == null)` →
+		// RED (a plain object is reported invalid). A5 note: RequiredAttribute_Validates already covers non-null
+		// acceptance with its "Hello", 42 and 0 rows. 2026-08-02
 		public void RequiredAttribute_NonNullObject_PassesValidation()
 		{
 			var attr = new RequiredAttribute();
@@ -30,6 +37,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: RequiredAttribute.IsValid must populate a non-empty `message` when it rejects a value; callers surface
+		// that string in the Config Browser's validation panel.
+		// RCR: RequiredAttribute.cs IsValid — change `message = "Value is required";` to `message = "";` → RED
+		// (Assert.IsNotEmpty fails). 2026-08-02
 		public void RequiredAttribute_FailedValidation_ReturnsMessage()
 		{
 			var attr = new RequiredAttribute();
@@ -43,6 +54,9 @@ namespace GameLovers.GameData.Tests
 		#region RangeAttribute Tests
 
 		[TestCase(0, 10, 5, true, Description = "Middle value passes")]
+		// ADMIT: RangeAttribute.IsValid treats both bounds as INCLUSIVE — a value equal to min or max is valid.
+		// RCR: RangeAttribute.cs IsValid — change `val < _min` to `val <= _min` → RED (the min-boundary row
+		// (0,10,0,true) now reports invalid). 2026-08-02
 		[TestCase(0, 10, 0, true, Description = "Min boundary passes")]
 		[TestCase(0, 10, 10, true, Description = "Max boundary passes")]
 		[TestCase(0, 10, -1, false, Description = "Below min fails")]
@@ -67,6 +81,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: RangeAttribute.IsValid must hand back a non-empty diagnostic when it rejects a value; callers
+		// surface it verbatim in the Config Browser.
+		// RCR: RangeAttribute.cs IsValid — set `message = null;` on the out-of-range branch → RED (IsNotNull fails).
+		// Also reddens ValidationAttribute_IsValid_ReturnsCorrectMessage. 2026-08-02
 		public void RangeAttribute_FailedValidation_ReturnsMessage()
 		{
 			var attr = new RangeAttribute(0, 10);
@@ -80,6 +98,10 @@ namespace GameLovers.GameData.Tests
 		#region MinLengthAttribute Tests
 
 		[TestCase(3, "abc", true, Description = "Exact length passes")]
+		// ADMIT: MinLengthAttribute.IsValid measures a string by its Length, not by falling through to the
+		// enumerable path or a zero default.
+		// RCR: MinLengthAttribute.cs IsValid — change the string branch to `length = 0;` → RED (the "abc"/min-3 row
+		// expects true and gets false). Also reddens EditorConfigValidatorTest's valid-config assertions. 2026-08-02
 		[TestCase(3, "abcd", true, Description = "Longer string passes")]
 		[TestCase(3, "ab", false, Description = "Too short fails")]
 		[TestCase(0, "", true, Description = "Zero min with empty passes")]
@@ -91,6 +113,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: MinLengthAttribute.IsValid rejects null only when a positive minimum is required — the
+		// `_minLength > 0` gate is what distinguishes "null with min 1" from "null with min 0".
+		// RCR: MinLengthAttribute.cs IsValid — change that gate to `_minLength > 1` → RED (null with min 1 now
+		// reports valid). 2026-08-02
 		public void MinLengthAttribute_NullString_FailsValidation()
 		{
 			var attr = new MinLengthAttribute(1);
@@ -98,6 +124,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: MinLengthAttribute.IsValid measures an ICollection by its Count, so a list already at the minimum
+		// passes.
+		// RCR: MinLengthAttribute.cs IsValid — change the ICollection branch to `length = 0;` → RED (a 2-element
+		// list with min 2 reports invalid). 2026-08-02
 		public void MinLengthAttribute_CollectionMeetsLength_PassesValidation()
 		{
 			var attr = new MinLengthAttribute(2);
@@ -106,6 +136,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: MinLengthAttribute.IsValid must reject an ICollection whose real Count is below the minimum —
+		// including the empty collection.
+		// RCR: MinLengthAttribute.cs IsValid — change the ICollection branch to `length = collection.Count + 5;` →
+		// RED (a 1-element list with min 2 reports valid). 2026-08-02
 		public void MinLengthAttribute_CollectionTooShort_FailsValidation()
 		{
 			var attr = new MinLengthAttribute(2);
@@ -122,6 +156,9 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: MinLengthAttribute.IsValid must hand back a non-empty diagnostic when it rejects a value.
+		// RCR: MinLengthAttribute.cs IsValid — set `message = null;` on the too-short branch → RED (IsNotNull fails).
+		// Also reddens ValidationAttribute_IsValid_ReturnsCorrectMessage. 2026-08-02
 		public void MinLengthAttribute_FailedValidation_ReturnsMessage()
 		{
 			var attr = new MinLengthAttribute(5);
@@ -135,6 +172,10 @@ namespace GameLovers.GameData.Tests
 		#region ValidationAttribute Base Tests
 
 		[Test]
+		// ADMIT: RequiredAttribute's null-value message must actually say "required" — this is the one message this
+		// test pins by wording rather than by a disjunction the input already embeds.
+		// RCR: RequiredAttribute.cs IsValid — change `message = "Value is required";` to `"n/a"` → RED
+		// (Does.Contain("required") fails on msg1); the other two assertions stay green. 2026-08-02
 		public void ValidationAttribute_IsValid_ReturnsCorrectMessage()
 		{
 			var required = new RequiredAttribute();

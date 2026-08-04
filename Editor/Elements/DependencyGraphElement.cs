@@ -40,9 +40,8 @@ namespace GameLovers.GameData.Editor
 
 		/// <summary>
 		/// Sets the target observable snapshot to display dependencies for.
-		/// Only <see cref="ComputedField{T}"/> instances have dependencies.
+		/// Only <see cref="ComputedField{T}"/> instances have dependencies; a default snapshot clears the view.
 		/// </summary>
-		/// <param name="snapshot">The observable snapshot to inspect, or default to clear.</param>
 		public void SetTarget(ObservableDebugRegistry.EntrySnapshot snapshot)
 		{
 			_list.Clear();

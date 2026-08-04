@@ -14,9 +14,6 @@ namespace GameLovers.GameData
 	[DebuggerDisplay("{ToStringInv()}")]
 	public struct floatP : IEquatable<floatP>, IComparable<floatP>, IComparable, IFormattable
 	{
-		/// <summary>
-		/// Raw byte representation of an floatP number
-		/// </summary>
 		private readonly uint _raw;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -39,7 +36,9 @@ namespace GameLovers.GameData
 		/// </summary>
 		public uint RawValue => _raw;
 
+		/// <summary>The mantissa bits as stored, with no implicit leading one restored.</summary>
 		internal uint RawMantissa { get { return _raw & 0x7FFFFF; } }
+		/// <summary>The signed mantissa with the implicit leading one restored for normal values.</summary>
 		internal int Mantissa
 		{
 			get
@@ -57,7 +56,9 @@ namespace GameLovers.GameData
 			}
 		}
 
+		/// <summary>The unbiased exponent.</summary>
 		internal sbyte Exponent { get { return (sbyte)(RawExponent - ExponentBias); } }
+		/// <summary>The exponent bits as stored, still biased.</summary>
 		internal byte RawExponent { get { return (byte)(_raw >> MantissaBits); } }
 
 		private const uint SignMask = 0x80000000;
@@ -74,16 +75,26 @@ namespace GameLovers.GameData
 		private const uint RawMinValue = 0x7F7FFFFF ^ SignMask;
 		private const uint RawEpsilon = 0x00000001;
 
+		/// <summary>Positive zero.</summary>
 		public static floatP Zero { get { return new floatP(); } }
+		/// <summary>Positive infinity.</summary>
 		public static floatP PositiveInfinity { get { return new floatP(RawPositiveInfinity); } }
+		/// <summary>Negative infinity.</summary>
 		public static floatP NegativeInfinity { get { return new floatP(RawNegativeInfinity); } }
+		/// <summary>Not-a-number.</summary>
 		public static floatP NaN { get { return new floatP(RawNaN); } }
+		/// <summary>The value one.</summary>
 		public static floatP One { get { return new floatP(RawOne); } }
+		/// <summary>The value minus one.</summary>
 		public static floatP MinusOne { get { return new floatP(RawMinusOne); } }
+		/// <summary>The largest finite value.</summary>
 		public static floatP MaxValue { get { return new floatP(RawMaxValue); } }
+		/// <summary>The most negative finite value.</summary>
 		public static floatP MinValue { get { return new floatP(RawMinValue); } }
+		/// <summary>The smallest positive subnormal value.</summary>
 		public static floatP Epsilon { get { return new floatP(RawEpsilon); } }
 
+		/// <inheritdoc />
 		public override string ToString() => ((float)this).ToString();
 
 		/// <summary>
@@ -173,23 +184,36 @@ namespace GameLovers.GameData
 			return FromParts(negative, exponent, u);
 		}
 
+		/// <summary>
+		/// Negation, by flipping the sign bit — so it also negates zero and NaN.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static floatP operator -(floatP f)
 		{
 			return new floatP(f._raw ^ 0x80000000);
 		}
 
+		/// <summary>
+		/// Addition, ordering the operands by exponent first so the shared implementation only has to
+		/// handle the larger-magnitude value on the left.
+		/// </summary>
 		public static floatP operator +(floatP f1, floatP f2)
 		{
 			return f1.RawExponent - f2.RawExponent >= 0 ? InternalAdd(f1, f2) : InternalAdd(f2, f1);
 		}
 
+		/// <summary>
+		/// Subtraction, evaluated as <c>f1 + (-f2)</c>.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static floatP operator -(floatP f1, floatP f2)
 		{
 			return f1 + (-f2);
 		}
 
+		/// <summary>
+		/// Multiplication, handling subnormals, infinities and NaN to IEEE binary32 rules.
+		/// </summary>
 		public static floatP operator *(floatP f1, floatP f2)
 		{
 			int man1;
@@ -405,6 +429,9 @@ namespace GameLovers.GameData
 			return new floatP(raw);
 		}
 
+		/// <summary>
+		/// Division, handling subnormals, infinities, zero and NaN to IEEE binary32 rules.
+		/// </summary>
 		public static floatP operator /(floatP f1, floatP f2)
 		{
 			if (f1.IsNaN() || f2.IsNaN())
@@ -608,11 +635,20 @@ namespace GameLovers.GameData
 			return new floatP(raw);
 		}
 
+		/// <summary>
+		/// Remainder, delegating to <see cref="MathfloatP.Mod"/>.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static floatP operator %(floatP f1, floatP f2) => MathfloatP.Mod(f1, f2);
 
+		/// <inheritdoc />
 		public override bool Equals(object obj) => obj != null && GetType() == obj.GetType() && Equals((floatP)obj);
 
+		/// <summary>
+		/// Bitwise-aware equality: positive and negative zero compare equal, and NaN compares equal to
+		/// NaN — deliberately unlike the <c>==</c> operator, so this type behaves correctly as a
+		/// dictionary key.
+		/// </summary>
 		public bool Equals(floatP other)
 		{
 			if (RawExponent != 255)
@@ -635,6 +671,7 @@ namespace GameLovers.GameData
 			}
 		}
 
+		/// <inheritdoc />
 		public override int GetHashCode()
 		{
 			if (RawValue == SignMask)
@@ -679,9 +716,16 @@ namespace GameLovers.GameData
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool operator !=(floatP f1, floatP f2) => !(f1 == f2);
 
+		/// <summary>
+		/// Ordering comparison. False whenever either operand is NaN, matching IEEE semantics —
+		/// note this differs from <see cref="Equals(floatP)"/>, which treats NaN as equal to NaN.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool operator <(floatP f1, floatP f2) => !f1.IsNaN() && !f2.IsNaN() && f1.CompareTo(f2) < 0;
 
+		/// <summary>
+		/// Ordering comparison. False whenever either operand is NaN, matching IEEE semantics.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool operator >(floatP f1, floatP f2) => !f1.IsNaN() && !f2.IsNaN() && f1.CompareTo(f2) > 0;
 
@@ -691,6 +735,9 @@ namespace GameLovers.GameData
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool operator >=(floatP f1, floatP f2) => !f1.IsNaN() && !f2.IsNaN() && f1.CompareTo(f2) >= 0;
 
+		/// <summary>
+		/// Total ordering suitable for sorting, comparing the sign-magnitude representations as integers.
+		/// </summary>
 		public int CompareTo(floatP other)
 		{
 			if (IsNaN() && other.IsNaN())
@@ -706,49 +753,95 @@ namespace GameLovers.GameData
 			return val1.CompareTo(val2);
 		}
 
+		/// <summary>
+		/// Compares against a boxed <see cref="floatP"/>, throwing <see cref="ArgumentException"/> for
+		/// anything else.
+		/// </summary>
 		public int CompareTo(object obj) => obj is floatP f ? CompareTo(f) : throw new ArgumentException("obj");
 
+		/// <summary>
+		/// True for either infinity.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsInfinity() => (RawValue & 0x7FFFFFFF) == 0x7F800000;
 
+		/// <summary>
+		/// True only for negative infinity.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsNegativeInfinity() => RawValue == RawNegativeInfinity;
 
+		/// <summary>
+		/// True only for positive infinity.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsPositiveInfinity() => RawValue == RawPositiveInfinity;
 
+		/// <summary>
+		/// True for any NaN bit pattern.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsNaN() => (RawExponent == 255) && !IsInfinity();
 
+		/// <summary>
+		/// True for anything that is neither infinity nor NaN.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsFinite() => RawExponent != 255;
 
+		/// <summary>
+		/// True for both positive and negative zero.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsZero() => (RawValue & 0x7FFFFFFF) == 0;
 
+		/// <summary>
+		/// True for either infinity.
+		/// </summary>
 		public static bool IsInfinity(floatP f)
 		{
 			return (f._raw & 0x7FFFFFFF) == 0x7F800000;
 		}
 
+		/// <summary>
+		/// True only for negative infinity.
+		/// </summary>
 		public static bool IsNegativeInfinity(floatP f)
 		{
 			return f._raw == RawNegativeInfinity;
 		}
 
+		/// <summary>
+		/// True for any NaN bit pattern.
+		/// </summary>
 		public static bool IsNaN(floatP f)
 		{
 			return (f.RawExponent == 255) && !IsInfinity(f);
 		}
 
+		/// <summary>
+		/// True for anything that is neither infinity nor NaN.
+		/// </summary>
 		public static bool IsFinite(floatP f)
 		{
 			return f.RawExponent != 255;
 		}
 
+		/// <summary>
+		/// Formats via <see cref="float"/>, so precision beyond binary32 is not preserved.
+		/// </summary>
 		public string ToString(string format, IFormatProvider formatProvider) => ((float)this).ToString(format, formatProvider);
+		/// <summary>
+		/// Formats via <see cref="float"/> using the current culture.
+		/// </summary>
 		public string ToString(string format) => ((float)this).ToString(format);
+		/// <summary>
+		/// Formats via <see cref="float"/> using the given provider.
+		/// </summary>
 		public string ToString(IFormatProvider provider) => ((float)this).ToString(provider);
+		/// <summary>
+		/// Formats with the invariant culture, for logs and deterministic output.
+		/// </summary>
 		public string ToStringInv() => ((float)this).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
 		/// <summary>
@@ -763,6 +856,9 @@ namespace GameLovers.GameData
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsNegative() => (RawValue & 0x80000000) != 0;
 
+		/// <summary>
+		/// -1, 0 or 1 for negative, zero and positive; zero covers both signed zeroes.
+		/// </summary>
 		public int Sign()
 		{
 			if (IsNaN())
@@ -784,6 +880,9 @@ namespace GameLovers.GameData
 			}
 		}
 
+		/// <summary>
+		/// -1, 0 or 1 for negative, zero and positive; zero covers both signed zeroes.
+		/// </summary>
 		public static int Sign(floatP value)
 		{
 			if (value.IsNaN())
@@ -804,11 +903,17 @@ namespace GameLovers.GameData
 			}
 		}
 
+		/// <summary>
+		/// The value's IEEE binary32 bit pattern.
+		/// </summary>
 		public uint ToIeeeRaw()
 		{
 			return _raw;
 		}
 
+		/// <summary>
+		/// Reconstructs a value from an IEEE binary32 bit pattern.
+		/// </summary>
 		public static floatP FromIeeeRaw(uint ieeeRaw)
 		{
 			return new floatP(ieeeRaw);
@@ -820,9 +925,7 @@ namespace GameLovers.GameData
 		1, 10, 4, 14, 6, 22, 25, 20, 11, 15, 23, 26, 16, 27, 17, 18
 		};
 
-		/// <summary>
-		/// Returns the leading zero count of the given 32-bit unsigned integer
-		/// </summary>
+		// Leading zero count, via the de Bruijn table above.
 		private static uint clz(uint x)
 		{
 			if (x == 0)

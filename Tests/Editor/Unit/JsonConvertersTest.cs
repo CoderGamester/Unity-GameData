@@ -29,6 +29,11 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ColorJsonConverter.ReadJson must return the parsed colour from the hex-string branch, not the
+		// Color.white fallback reserved for unrecognised tokens.
+		// RCR: ColorJsonConverter.cs ReadJson — return `Color.white` from inside the successful
+		// TryParseHtmlString branch → RED (all four channel assertions fail). Also reddens the two serializer-level
+		// Unity-type round trips. 2026-08-02
 		public void Color_RoundTrip()
 		{
 			var color = new Color(0.1f, 0.2f, 0.3f, 0.4f);
@@ -44,6 +49,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: Vector2JsonConverter.ReadJson must rebuild the Vector2 from the deserialized payload rather than
+		// yielding the struct default.
+		// RCR: VectorJsonConverters.cs Vector2JsonConverter.ReadJson — `return default;` → RED (x/y come back 0).
+		// 2026-08-02
 		public void Vector2_RoundTrip()
 		{
 			var vec = new Vector2(1.1f, 2.2f);
@@ -55,6 +64,11 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: Vector3JsonConverter.WriteJson must emit the real z component — the write side is where a dropped
+		// component silently survives a round trip that only checks x and y.
+		// RCR: VectorJsonConverters.cs Vector3JsonConverter.WriteJson — `writer.WriteValue(0f);` for z → RED (z
+		// comes back 0, not 3.3). Also reddens ConfigsSerializerTest.RoundTrip_UnityTypes_PreservesValues.
+		// 2026-08-02
 		public void Vector3_RoundTrip()
 		{
 			var vec = new Vector3(1.1f, 2.2f, 3.3f);
@@ -67,6 +81,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: Vector4JsonConverter.ReadJson must rebuild the Vector4 from the deserialized payload rather than
+		// yielding the struct default.
+		// RCR: VectorJsonConverters.cs Vector4JsonConverter.ReadJson — `return default;` → RED (all four components
+		// come back 0). 2026-08-02
 		public void Vector4_RoundTrip()
 		{
 			var vec = new Vector4(1.1f, 2.2f, 3.3f, 4.4f);
@@ -80,6 +98,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: QuaternionJsonConverter.ReadJson reuses Vector4Serializable and must convert it back to a
+		// Quaternion, not yield the struct default.
+		// RCR: VectorJsonConverters.cs QuaternionJsonConverter.ReadJson — `return default;` → RED (all four
+		// components come back 0). 2026-08-02
 		public void Quaternion_RoundTrip()
 		{
 			var quat = new Quaternion(0.1f, 0.2f, 0.3f, 0.4f);

@@ -3,6 +3,9 @@ using System.Collections;
 
 namespace GameLovers.GameData
 {
+	/// <summary>
+	/// Requires a string or collection of at least the given length.
+	/// </summary>
 	public class MinLengthAttribute : ValidationAttribute
 	{
 		private readonly int _minLength;
@@ -12,6 +15,7 @@ namespace GameLovers.GameData
 			_minLength = minLength;
 		}
 
+		/// <inheritdoc />
 		public override bool IsValid(object value, out string message)
 		{
 			if (value == null)

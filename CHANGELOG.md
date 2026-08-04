@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-08-04
+
+**Changed**:
+- Added the `com.unity.test-framework.performance` (3.5.0) dependency so the package's test assemblies compile when tests are enabled.
+- Improved public API documentation and automated coverage across the data, observable, serialization, configuration, and math utilities.
+
+**Removed**:
+- **BREAKING** — Removed the unused public `IConfigBackendService` interface. Consumers that implemented it must remove the implementation or vendor the two-method interface locally.
+- Removed the unused `com.cysharp.unitask` dependency from the runtime assembly and Migration sample.
+
 ## [1.0.2] - 2026-04-26
 
 **New**:

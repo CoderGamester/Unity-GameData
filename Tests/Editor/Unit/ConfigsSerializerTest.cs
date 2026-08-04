@@ -62,6 +62,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer.Serialize must emit the caller's version string verbatim into the payload's
+		// `Version` property.
+		// RCR: ConfigsSerializer.cs Serialize — change `Version = version,` to `version + "!"` → RED (the
+		// `"Version":"1"` substring assertion fails). Also reddens the two round-trip version assertions. 2026-08-02
 		public void Serialize_ValidProvider_ReturnsJsonString()
 		{
 			_provider.AddSingletonConfig(new TestConfig { Id = 1, Name = "Test" });
@@ -73,6 +77,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer.Serialize must skip config types carrying [IgnoreServerSerialization] so they are
+		// never shipped to a server.
+		// RCR: ConfigsSerializer.cs Serialize — disable the CustomAttributes `continue` guard → RED (IgnoredConfig
+		// appears in the JSON). Also reddens Integration.FullWorkflow_AddSerializeDeserializeAccess. 2026-08-02
 		public void Serialize_IgnoreServerSerialization_ExcludesMarkedTypes()
 		{
 			_provider.AddSingletonConfig(new TestConfig { Id = 1 });
@@ -85,6 +93,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer.Serialize must refuse a config type lacking [Serializable] rather than emitting
+		// a payload the server cannot read back.
+		// RCR: ConfigsSerializer.cs Serialize — disable the `!type.IsSerializable` guard → RED (no exception is
+		// thrown). 2026-08-02
 		public void Serialize_NonSerializableWithoutAttribute_ThrowsException()
 		{
 			// Note: ConfigsProvider allows adding non-serializable types, 
@@ -95,6 +107,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer's Converters list must route Color through ColorJsonConverter (an RGBA hex string)
+		// and the vectors through VectorJsonConverters, not Newtonsoft reflection over Unity's derived properties.
+		// RCR: ConfigsSerializer.cs ctor — remove `new ColorJsonConverter(),` from Converters → RED (the "#FF0000FF"
+		// assertion fails; the payload carries a reflected {"r":..} object). 2026-08-04
 		public void Serialize_UnityTypes_SerializesCorrectly()
 		{
 			var config = new UnityTypesConfig
@@ -109,13 +125,17 @@ namespace GameLovers.GameData.Tests
 
 			var json = _serializer.Serialize(_provider, "1");
 
-			// Color is serialized as hex string by ColorJsonConverter
-			Assert.IsTrue(json.Contains("#FF0000FF") || json.Contains("\"Color\":"));
-			// Vectors are serialized as objects with x,y,z,w properties
-			Assert.IsTrue(json.Contains("\"x\":"));
+			// Color must ship as an RGBA hex string, not a reflected {"r":..,"g":..} object
+			Assert.IsTrue(json.Contains("#FF0000FF"));
+			// Vectors must ship through VectorJsonConverters; reflection would emit Unity's derived properties
+			Assert.IsFalse(json.Contains("\"normalized\""));
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer's settings must include StringEnumConverter, so enum config fields ship as
+		// readable names instead of ordinals that shift when the enum is reordered.
+		// RCR: ConfigsSerializer.cs ctor — remove `new StringEnumConverter(),` from the Converters list → RED (the
+		// `"Selection":"Value2"` substring assertion fails; the payload carries `1`). 2026-08-02
 		public void Serialize_EnumValues_SerializedAsStrings()
 		{
 			_provider.AddSingletonConfig(new EnumConfig { Selection = TestEnum.Value2 });
@@ -125,6 +145,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer.Deserialize must forward the parsed version to IConfigsAdder.UpdateTo, not a
+		// constant.
+		// RCR: ConfigsSerializer.cs Deserialize — change `cfg.UpdateTo(versionNumber, ...)` to `cfg.UpdateTo(0, ...)`
+		// → RED (Version is 0, not 5). Also reddens RoundTrip_AllConfigTypes and Integration.BackendSync. 2026-08-02
 		public void Deserialize_ValidJson_IntoExistingProvider()
 		{
 			// First serialize to get the correct format, then deserialize
@@ -147,6 +171,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer.Deserialize's `ulong.TryParse` guard must fall back to 0 only when the parse
+		// FAILS — a well-formed numeric version has to survive the round trip.
+		// RCR: ConfigsSerializer.cs Deserialize — invert the guard to `if (ulong.TryParse(...))` → RED (Version is 0,
+		// not 10). Also reddens Deserialize_ValidJson and Integration.BackendSync. 2026-08-02
 		public void RoundTrip_AllConfigTypes_PreservesData()
 		{
 			// Use a collection that includes a "singleton-like" entry at ID 0
@@ -183,6 +211,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: Vector3JsonConverter.ReadJson must rebuild the Vector3 from the serialized payload instead of
+		// yielding the struct default.
+		// RCR: VectorJsonConverters.cs Vector3JsonConverter.ReadJson — `return default;` → RED (Vec3 comes back
+		// (0,0,0) instead of (3.3,4.4,5.5)). 2026-08-02
 		public void RoundTrip_UnityTypes_PreservesValues()
 		{
 			var config = new UnityTypesConfig

@@ -87,6 +87,9 @@ namespace GameLovers.GameData
 		/// <inheritdoc cref="List{T}.Clear"/>
 		void Clear();
 
+		/// <summary>
+		/// Notifies the observers of a single index without changing its value.
+		/// </summary>
 		/// <remarks>
 		/// It invokes any update method that is observing to the given <paramref name="index"/> on this list
 		/// </remarks>
@@ -145,6 +148,7 @@ namespace GameLovers.GameData
 		/// <inheritdoc />
 		public IReadOnlyList<T> ReadOnlyList => new List<T>(List);
 
+		/// <summary>The backing list; override to change the storage a subclass reads through.</summary>
 		protected virtual List<T> List { get; set; }
 
 		protected ObservableList()
@@ -361,6 +365,9 @@ namespace GameLovers.GameData
 			}
 		}
 
+		/// <summary>
+		/// Notifies subscribers. Suppressed while a batch is open, which then fires once on resume.
+		/// </summary>
 		protected void InvokeUpdate(int index, T previousValue)
 		{
 			if (_isBatching)

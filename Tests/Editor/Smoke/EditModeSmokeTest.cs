@@ -9,6 +9,10 @@ namespace GameLovers.GameData.Tests.Smoke
 	public class EditModeSmokeTest
 	{
 		[Test]
+		// ADMIT: smoke — exempt from A1/A2 by directory (Tests/AGENTS.md §1, smoke exemption). Defect class: the
+		// GameLovers.GameData assembly no longer loads, or ConfigsProvider construction/registration regressed.
+		// RCR: none claimed — smoke exemption; the per-symbol mutations live on the ConfigsProviderTest fixture.
+		// 2026-08-02
 		public void Configs_SmokeTest()
 		{
 			var provider = new ConfigsProvider();
@@ -17,6 +21,10 @@ namespace GameLovers.GameData.Tests.Smoke
 		}
 
 		[Test]
+		// ADMIT: smoke — exempt from A1/A2 by directory (Tests/AGENTS.md §1, smoke exemption). Defect class: the
+		// GameLovers.GameData assembly no longer loads, or the observable bootstrap regressed.
+		// RCR: none claimed — smoke exemption; the per-symbol mutations live on the ObservableFieldTest fixture.
+		// 2026-08-02
 		public void Observables_SmokeTest()
 		{
 			var field = new ObservableField<int>(10);
@@ -27,6 +35,10 @@ namespace GameLovers.GameData.Tests.Smoke
 		}
 
 		[Test]
+		// ADMIT: smoke — exempt from A1/A2 by directory (Tests/AGENTS.md §1, smoke exemption). Defect class: the
+		// GameLovers.GameData assembly no longer loads, or the floatP/MathfloatP bootstrap regressed.
+		// RCR: none claimed — smoke exemption; the per-symbol mutations live on the floatP/MathfloatP fixtures.
+		// 2026-08-02
 		public void Math_SmokeTest()
 		{
 			var a = (floatP)1.5f;

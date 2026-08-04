@@ -45,10 +45,6 @@ namespace GameLovers.GameData
 			typeof(double[]),
 		};
 
-		/// <summary>
-		/// Creates a new ConfigTypesBinder with the specified allowed types.
-		/// </summary>
-		/// <param name="allowedConfigTypes">The config types to allow during deserialization.</param>
 		public ConfigTypesBinder(IEnumerable<Type> allowedConfigTypes)
 		{
 			_allowedTypes = new HashSet<Type>(_builtInAllowedTypes);

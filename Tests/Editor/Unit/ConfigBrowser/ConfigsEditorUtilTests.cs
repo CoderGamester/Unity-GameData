@@ -14,6 +14,10 @@ namespace GameLovers.GameData.Tests
 	public class ConfigsEditorUtilTests
 	{
 		[Test]
+		// ADMIT: ConfigsEditorUtil.TryReadConfigs must return entries sorted by id — Dictionary iteration order is
+		// not insertion order, and the browser tree renders in the returned order.
+		// RCR: ConfigsEditorUtil.cs TryReadConfigs — reverse the comparator to `b.Id.CompareTo(a.Id)` → RED
+		// (entries[0].Id is 2, not 1). 2026-08-02
 		public void TryReadConfigs_WithDictionaryIntKey_ReturnsSortedEntries()
 		{
 			var dict = new Dictionary<int, string>
@@ -33,6 +37,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigsEditorUtil.TryReadConfigs must reject a container that is not a generic Dictionary<,>
+		// instead of reporting a successful read of nothing.
+		// RCR: ConfigsEditorUtil.cs TryReadConfigs — change that guard's `return false;` to `return true;` → RED
+		// (IsFalse fails). 2026-08-02
 		public void TryReadConfigs_WithNonDictionary_ReturnsFalse()
 		{
 			var list = new List<int> { 1, 2, 3 };
@@ -44,6 +52,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigsEditorUtil.TryReadConfigs must reject a dictionary whose key is not int, before the
+		// reflection loop casts the key.
+		// RCR: ConfigsEditorUtil.cs TryReadConfigs — change the `keyType != typeof(int)` guard's `return false;` to
+		// `return true;` → RED (IsFalse fails). 2026-08-02
 		public void TryReadConfigs_WithNonIntKey_ReturnsFalse()
 		{
 			var dict = new Dictionary<string, int>

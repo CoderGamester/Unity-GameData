@@ -2,6 +2,10 @@ using System;
 
 namespace GameLovers.GameData
 {
+	/// <summary>
+	/// Requires a numeric value within an inclusive range. A null value passes — pair it with
+	/// <see cref="RequiredAttribute"/> when null should fail too.
+	/// </summary>
 	public class RangeAttribute : ValidationAttribute
 	{
 		private readonly double _min;
@@ -13,6 +17,7 @@ namespace GameLovers.GameData
 			_max = max;
 		}
 
+		/// <inheritdoc />
 		public override bool IsValid(object value, out string message)
 		{
 			if (value == null)

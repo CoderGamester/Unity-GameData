@@ -15,6 +15,10 @@ namespace GameLovers.GameData.Tests
 	public class ConfigTreeBuilderTests
 	{
 		[Test]
+		// ADMIT: ConfigTreeBuilder.BuildTreeItems classifies a container as a singleton only when it holds exactly
+		// one entry at id 0 — that decides which of the two headers it lands under.
+		// RCR: ConfigTreeBuilder.cs BuildTreeItems — force `var isSingleton = false;` → RED (the Singletons header
+		// has 0 children and Collections has 2). 2026-08-02
 		public void BuildTreeItems_WithSingletonAndCollection_BuildsRootsAndEntries()
 		{
 			var provider = BuildProvider();
@@ -36,6 +40,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigTreeBuilder.BuildTreeItems must match the search term against the config TYPE name, not only
+		// against entry ids.
+		// RCR: ConfigTreeBuilder.cs BuildTreeItems — drop the `type.Name...Contains(searchLower)` term from
+		// `typeMatches` → RED (the searched type is filtered out along with the others). 2026-08-02
 		public void BuildTreeItems_SearchByTypeName_FiltersOtherTypes()
 		{
 			var provider = BuildProvider();
@@ -48,6 +56,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigTreeBuilder.BuildTreeItems falls back to matching the search term against each entry's id
+		// string when the type name does not match.
+		// RCR: ConfigTreeBuilder.cs BuildTreeItems — change the non-singleton `idStr` to `string.Empty` → RED (the
+		// "20" search returns 0 entries, not 1). 2026-08-02
 		public void BuildTreeItems_SearchById_FiltersToMatchingEntry()
 		{
 			var provider = BuildProvider();

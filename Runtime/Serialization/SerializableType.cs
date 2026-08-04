@@ -67,12 +67,18 @@ namespace GameLovers.GameData
 			}
 		}
 
+		/// <summary>
+		/// Unwraps the resolved <see cref="Type"/>, which is null when it no longer exists.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator Type(SerializableType<T> type)
 		{
 			return type.Value;
 		}
 
+		/// <summary>
+		/// Wraps a <see cref="Type"/> so it survives Unity serialization by name.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SerializableType<T>(Type type)
 		{
@@ -110,6 +116,24 @@ namespace GameLovers.GameData
 		/// Uses an AOT-safe resolution pattern that searches loaded assemblies to avoid issues with code stripping.
 		/// </summary>
 		void ISerializationCallbackReceiver.OnAfterDeserialize()
+		{
+			OnAfterDeserializeImpl();
+		}
+
+		/// <summary>
+		/// Builds an instance the way Unity's deserializer would — private name fields set, then resolved
+		/// in place — so a test can reach that state without boxing the struct.
+		/// </summary>
+		internal static SerializableType<T> FromSerializedNames(string className, string assemblyName)
+		{
+			var st = new SerializableType<T>();
+			st._className = className;
+			st._assemblyName = assemblyName;
+			st.OnAfterDeserializeImpl();
+			return st;
+		}
+
+		private void OnAfterDeserializeImpl()
 		{
 			try
 			{
