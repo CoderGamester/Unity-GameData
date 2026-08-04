@@ -189,6 +189,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ComputedField<T> stays uncomputed until Value is read, even after its sources change repeatedly.
+		// RCR: ComputedField.cs Value getter — `if (false)` in place of `if (_isDirty)` → RED (Value is 0, not 30).
+		// A5 note: no mutation reddens the `callCount == 0` half — nothing computes eagerly to begin with — so this
+		// pins nothing that Value_ComputesOnFirstAccess does not already pin. 2026-08-02
 		public void LazyEvaluation_DoesNotComputeUntilAccessed()
 		{
 			var callCount = 0;

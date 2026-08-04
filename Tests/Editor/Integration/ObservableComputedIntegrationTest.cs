@@ -67,6 +67,11 @@ namespace GameLovers.GameData.Tests.Integration
 		}
 
 		[Test]
+		// ADMIT: a ComputedField acting as another's dependency must record the downstream subscriber, or the dirty
+		// flag stops at the first link.
+		// RCR: ComputedField.cs IComputedDependency.Subscribe — comment out
+		// `_dependencyActions.Add(onDependencyChanged);` → RED (c2 still reports 12 after the root changes). A5 note:
+		// shared with ComputedFieldTest.ChainedComputed_MultiLevelDependencies. 2026-08-02
 		public void ChainedComputedFields_PropagateDirtyFlag()
 		{
 			var field = new ObservableField<int>(10);

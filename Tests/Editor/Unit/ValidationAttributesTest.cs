@@ -26,6 +26,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: RequiredAttribute.IsValid accepts any non-null, non-empty-string value.
+		// RCR: RequiredAttribute.cs IsValid — force the null arm with `if (true)` in place of `if (value == null)` →
+		// RED (a plain object is reported invalid). A5 note: RequiredAttribute_Validates already covers non-null
+		// acceptance with its "Hello", 42 and 0 rows. 2026-08-02
 		public void RequiredAttribute_NonNullObject_PassesValidation()
 		{
 			var attr = new RequiredAttribute();
@@ -33,6 +37,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: RequiredAttribute.IsValid must populate a non-empty `message` when it rejects a value; callers surface
+		// that string in the Config Browser's validation panel.
+		// RCR: RequiredAttribute.cs IsValid — change `message = "Value is required";` to `message = "";` → RED
+		// (Assert.IsNotEmpty fails). 2026-08-02
 		public void RequiredAttribute_FailedValidation_ReturnsMessage()
 		{
 			var attr = new RequiredAttribute();

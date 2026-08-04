@@ -184,6 +184,10 @@ namespace GameLovers.GameData.Tests
 			Assert.AreEqual(1, observerCalls);
 		}
 		[Test]
+		// ADMIT: the ObservableResolverDictionary<...> constructor must seed the projected dictionary from every origin
+		// entry, so keys present in the origin are queryable through the observable surface.
+		// RCR: ObservableResolverDictionary.cs constructor — comment out `Dictionary.Add(fromOrignResolver(pair));`
+		// (the ctor's copy, not Rebind's) → RED (ContainsKey(_key) is false). 2026-08-02
 		public void ContainsKey_ReturnsTrue_WhenKeyExists()
 		{
 			// Key was added in Init() via origin dictionary

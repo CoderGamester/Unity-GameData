@@ -32,6 +32,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ObservableField<T>'s value-taking constructor must store initialValue in _value, and
+		// ObservableResolverField<T>.Value must read through _fieldResolver rather than the inherited backing field.
+		// RCR: ObservableField.cs ObservableField(T initialValue) — change `_value = initialValue;` to
+		// `_value = default;` → RED (Value returns 0 instead of the value the fixture constructed it with). 2026-08-02
 		public void ValueCheck()
 		{
 			Assert.AreEqual(_mockInt, _observableField.Value);
