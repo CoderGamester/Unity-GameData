@@ -26,6 +26,7 @@ namespace GameLoversEditor.GameData
 			MigrationType = migrationType;
 		}
 
+		/// <inheritdoc />
 		public override string ToString() => $"{ConfigType.Name}: v{FromVersion} → v{ToVersion}";
 	}
 

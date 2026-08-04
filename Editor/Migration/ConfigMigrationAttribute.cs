@@ -31,10 +31,6 @@ namespace GameLoversEditor.GameData
 		/// </summary>
 		public Type ConfigType { get; }
 
-		/// <summary>
-		/// Creates a new migration attribute for the specified config type.
-		/// </summary>
-		/// <param name="configType">The config type this migration handles.</param>
 		public ConfigMigrationAttribute(Type configType)
 		{
 			ConfigType = configType;

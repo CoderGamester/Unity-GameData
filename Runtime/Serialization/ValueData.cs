@@ -22,6 +22,7 @@ namespace GameLovers.GameData
 			Value = value;
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return $"[{Key.ToString()},{Value.ToString()}]";
@@ -41,6 +42,7 @@ namespace GameLovers.GameData
 			Value = value;
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return $"[{Key.ToString()},{Value.ToString()}]";

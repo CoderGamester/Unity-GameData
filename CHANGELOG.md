@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+**Docs**:
+- Aligned XML doc comments with the host repo's `AGENTS.md` §6.6. Removed the doc comments from the `ConfigMigrationAttribute`, `ConfigTypesBinder` and `ConfigsSerializer` constructors, from the private `floatP._raw` field, and from the private `floatP.clz` / `ObservableDebugRegistry.TryExtractMemberName` helpers (the latter two keeping their rationale as `//` comments). Folded the `<param>` tags on `DependencyGraphElement.SetTarget` and the internal `ObservableDebugRegistry.Register` into their summaries. Converted the `SerializationSecurityMode` members to inline `//` comments, promoting the serialize-only round-trip constraint to a `<remarks>` on the enum itself so the caveat stays on the consumer-visible surface. Added `/// <inheritdoc />` to the `ToString` / `Equals` / `GetHashCode` overrides on `floatP`, `Pair`, `StructPair` and `MigrationInfo`, and to all eight `WriteJson` / `ReadJson` overrides in `VectorJsonConverters`. Moved the internal `SerializableType<T>.FromSerializedNames` test seam above the private block, per §6.6's rule that `internal` is never interleaved with `private` (a pure reorder — the `OnAfterDeserializeImpl` struct-boxing pattern in §4 of this package's `AGENTS.md` is untouched).
+
 **Removed**:
 - **BREAKING** — `IConfigBackendService` (`Runtime/ConfigServices/Interfaces/`). The interface was public API but had no implementation, no consumer, and no test anywhere in the package; it was the package's only `UniTask` consumer. Anyone implementing it must remove the implementation or vendor the two-method interface locally. `UniTask` is correspondingly dropped from `Runtime/GameLovers.GameData.asmdef` and `Samples~/Migration/Migration.asmdef`.
 

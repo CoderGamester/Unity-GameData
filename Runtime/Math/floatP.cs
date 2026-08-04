@@ -14,9 +14,6 @@ namespace GameLovers.GameData
 	[DebuggerDisplay("{ToStringInv()}")]
 	public struct floatP : IEquatable<floatP>, IComparable<floatP>, IComparable, IFormattable
 	{
-		/// <summary>
-		/// Raw byte representation of an floatP number
-		/// </summary>
 		private readonly uint _raw;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -84,6 +81,7 @@ namespace GameLovers.GameData
 		public static floatP MinValue { get { return new floatP(RawMinValue); } }
 		public static floatP Epsilon { get { return new floatP(RawEpsilon); } }
 
+		/// <inheritdoc />
 		public override string ToString() => ((float)this).ToString();
 
 		/// <summary>
@@ -611,6 +609,7 @@ namespace GameLovers.GameData
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static floatP operator %(floatP f1, floatP f2) => MathfloatP.Mod(f1, f2);
 
+		/// <inheritdoc />
 		public override bool Equals(object obj) => obj != null && GetType() == obj.GetType() && Equals((floatP)obj);
 
 		public bool Equals(floatP other)
@@ -635,6 +634,7 @@ namespace GameLovers.GameData
 			}
 		}
 
+		/// <inheritdoc />
 		public override int GetHashCode()
 		{
 			if (RawValue == SignMask)
@@ -820,9 +820,7 @@ namespace GameLovers.GameData
 		1, 10, 4, 14, 6, 22, 25, 20, 11, 15, 23, 26, 16, 27, 17, 18
 		};
 
-		/// <summary>
-		/// Returns the leading zero count of the given 32-bit unsigned integer
-		/// </summary>
+		// Leading zero count, via the de Bruijn table above.
 		private static uint clz(uint x)
 		{
 			if (x == 0)

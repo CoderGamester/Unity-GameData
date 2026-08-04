@@ -114,6 +114,15 @@ namespace GameLovers.GameData
 			OnAfterDeserializeImpl();
 		}
 
+		internal static SerializableType<T> FromSerializedNames(string className, string assemblyName)
+		{
+			var st = new SerializableType<T>();
+			st._className = className;
+			st._assemblyName = assemblyName;
+			st.OnAfterDeserializeImpl();
+			return st;
+		}
+
 		private void OnAfterDeserializeImpl()
 		{
 			try
@@ -146,15 +155,6 @@ namespace GameLovers.GameData
 			{
 				Debug.LogException(e);
 			}
-		}
-
-		internal static SerializableType<T> FromSerializedNames(string className, string assemblyName)
-		{
-			var st = new SerializableType<T>();
-			st._className = className;
-			st._assemblyName = assemblyName;
-			st.OnAfterDeserializeImpl();
-			return st;
 		}
 	}
 }

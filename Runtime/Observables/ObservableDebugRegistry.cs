@@ -62,13 +62,10 @@ namespace GameLovers.GameData
 		private static readonly List<WeakReference<object>> _refs = new List<WeakReference<object>>();
 
 		/// <summary>
-		/// Registers an observable instance with the debug registry.
-		/// Called automatically by observable constructors in editor builds.
+		/// Registers an observable instance with the debug registry, where <paramref name="kind"/> is one of
+		/// Field, Computed, List, Dictionary or HashSet. Called automatically by observable constructors in
+		/// editor builds.
 		/// </summary>
-		/// <param name="instance">The observable instance to register.</param>
-		/// <param name="kind">The observable type category (Field, Computed, List, Dictionary, HashSet).</param>
-		/// <param name="valueGetter">Delegate to get the current value as a string.</param>
-		/// <param name="subscriberCountGetter">Delegate to get the current subscriber count.</param>
 		internal static void Register(
 			object instance,
 			string kind,
@@ -156,9 +153,8 @@ namespace GameLovers.GameData
 			return (name, filePath, lineNumber);
 		}
 
-		/// <summary>
-		/// Attempts to extract the field or property name from source code at the given location.
-		/// </summary>
+		// Reads the declaring line out of the source file, so the debugger can label an observable by the
+		// member that holds it rather than by its type alone.
 		private static string TryExtractMemberName(string filePath, int lineNumber)
 		{
 			try

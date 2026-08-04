@@ -28,21 +28,15 @@ namespace GameLovers.GameData
 	/// <summary>
 	/// Defines the security mode for serialization.
 	/// </summary>
+	/// <remarks>
+	/// <see cref="Secure"/> is serialize-only: emitting no type metadata means the internal
+	/// <c>Dictionary&lt;Type, IEnumerable&gt;</c> cannot be reconstructed, so it cannot round-trip.
+	/// Use it for configs sent TO untrusted targets, and <see cref="TrustedOnly"/> for data read back.
+	/// </remarks>
 	public enum SerializationSecurityMode
 	{
-		/// <summary>
-		/// Default mode. Uses TypeNameHandling.Auto for polymorphic serialization.
-		/// Uses a SerializationBinder to restrict allowed types for security.
-		/// Should only be used for trusted data sources.
-		/// </summary>
-		TrustedOnly,
-		/// <summary>
-		/// Secure mode. Uses TypeNameHandling.None - no type metadata is emitted or processed.
-		/// Note: This mode cannot round-trip serialize/deserialize due to the internal
-		/// Dictionary&lt;Type, IEnumerable&gt; structure requiring type metadata.
-		/// Use for serializing configs TO untrusted targets (e.g., sending to clients).
-		/// </summary>
-		Secure
+		TrustedOnly, // TypeNameHandling.Auto, with a SerializationBinder restricting allowed types.
+		Secure       // TypeNameHandling.None: no type metadata emitted or processed.
 	}
 
 	/// <summary>
@@ -71,11 +65,6 @@ namespace GameLovers.GameData
 		/// </summary>
 		public SerializationSecurityMode SecurityMode => _securityMode;
 
-		/// <summary>
-		/// Creates a new ConfigsSerializer with the specified security mode.
-		/// </summary>
-		/// <param name="mode">The security mode to use. Defaults to TrustedOnly.</param>
-		/// <param name="maxDepth">Maximum JSON nesting depth. Defaults to 128.</param>
 		public ConfigsSerializer(SerializationSecurityMode mode = SerializationSecurityMode.TrustedOnly, int maxDepth = DefaultMaxDepth)
 		{
 			_securityMode = mode;
