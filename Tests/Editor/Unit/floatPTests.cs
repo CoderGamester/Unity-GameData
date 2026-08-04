@@ -117,17 +117,6 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
-		// ADMIT: none - `(floatP)1.23f` invokes the same implicit float operator as the sibling test.
-		// RCR: OWED, not exempt - A5 duplicate of ImplicitConversion_FromFloat: identical causal chain
-		// (operator floatP(float) + operator float(floatP)); every mutation reddens both.
-		public void ExplicitConversion_ToFloat()
-		{
-			floatP f = (floatP)1.23f;
-			float val = (float)f;
-			Assert.AreEqual(1.23f, val, 0.0001f);
-		}
-
-		[Test]
 		// ADMIT: floatP's int conversion re-applies the sign after shifting the mantissa, truncating toward zero.
 		// RCR: floatP.cs operator int(floatP) - sign ternary inverted -> RED ((int)(floatP)1.9f returns -1).
 		public void ExplicitConversion_ToInt_Truncates()

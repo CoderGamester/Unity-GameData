@@ -274,22 +274,18 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
-		// ADMIT: none - the test compares one in-process expression against itself.
-		// RCR: OWED, not exempt - A3 reject: every edit to floatP/MathfloatP moves raw1 and raw2 together, so
-		// `raw1 == raw2` pins C# purity, not package behaviour. Assert a hard-coded raw literal instead.
+		// ADMIT: floatP multiply/add and MathfloatP.Sin must be bit-reproducible; a golden RawValue is the
+		// only assertion that notices the pipeline changing, since two in-process evaluations always agree.
+		// RCR: MathfloatP.cs Sin — Bhaskara constant `0x42456460` → `0x42456461` → RED (1090413845 became
+		// 1090413844). Also reddens AllTrigFunctions_RawValueConsistent. 2026-08-04
 		public void Determinism_VerifyRawValues()
 		{
-			// Verify that basic operations produce identical raw values
 			var a = (floatP)1.234f;
 			var b = (floatP)5.678f;
-			
-			var res1 = a * b + MathfloatP.Sin(a);
-			var raw1 = res1.RawValue;
-			
-			var res2 = a * b + MathfloatP.Sin(a);
-			var raw2 = res2.RawValue;
-			
-			Assert.AreEqual(raw1, raw2);
+
+			// Golden value from the reference implementation. A diff here is either a determinism
+			// regression or a deliberate numeric change that must be re-pinned in the same commit.
+			Assert.AreEqual(1090413845u, (a * b + MathfloatP.Sin(a)).RawValue);
 		}
 
 		#region Trigonometry Extended Tests
@@ -587,63 +583,50 @@ namespace GameLovers.GameData.Tests
 		#region Determinism Extended Tests
 
 		[Test]
-		// ADMIT: none - Sin/Cos/Tan are each called twice on the same input and compared to themselves.
-		// RCR: OWED, not exempt - A3 reject: any mutation changes both calls identically, so no production edit
-		// can redden it. Assert hard-coded expected RawValues to make it falsifiable.
+		// ADMIT: MathfloatP.Sin/Cos/Tan must return bit-identical results to the reference implementation;
+		// comparing a call against itself cannot detect a changed approximation.
+		// RCR: MathfloatP.cs Sin — Bhaskara constant `0x42456460` → `0x42456461` → RED on the Sin row
+		// (1056279524 became 1056279522); Cos → `Sin(x)` reddens the Cos row (1063280850 → 1056279524).
+		// 2026-08-04
 		public void AllTrigFunctions_RawValueConsistent()
 		{
 			var input = (floatP)0.5f;
-			
-			var sin1 = MathfloatP.Sin(input).RawValue;
-			var sin2 = MathfloatP.Sin(input).RawValue;
-			Assert.AreEqual(sin1, sin2);
-			
-			var cos1 = MathfloatP.Cos(input).RawValue;
-			var cos2 = MathfloatP.Cos(input).RawValue;
-			Assert.AreEqual(cos1, cos2);
-			
-			var tan1 = MathfloatP.Tan(input).RawValue;
-			var tan2 = MathfloatP.Tan(input).RawValue;
-			Assert.AreEqual(tan1, tan2);
+
+			// Golden values: see Determinism_VerifyRawValues for the re-pinning rule.
+			Assert.AreEqual(1056279524u, MathfloatP.Sin(input).RawValue, "Sin");
+			Assert.AreEqual(1063280850u, MathfloatP.Cos(input).RawValue, "Cos");
+			Assert.AreEqual(1057756004u, MathfloatP.Tan(input).RawValue, "Tan");
 		}
 
 		[Test]
-		// ADMIT: none - Sqrt/Log/Exp are each called twice on the same input and compared to themselves.
-		// RCR: OWED, not exempt - A3 reject: any mutation changes both calls identically, so no production edit
-		// can redden it. Assert hard-coded expected RawValues to make it falsifiable.
+		// ADMIT: MathfloatP.Sqrt/Log/Exp must return bit-identical results to the reference implementation;
+		// comparing a call against itself cannot detect a changed approximation.
+		// RCR: MathfloatP.cs Sqrt — exponent unbias `m -= 127` → `m -= 126` → RED on the Sqrt row
+		// (1070228162 became 1074731965). Leaves the trig tests green. 2026-08-04
 		public void AllPowerFunctions_RawValueConsistent()
 		{
 			var input = (floatP)2.5f;
-			
-			var sqrt1 = MathfloatP.Sqrt(input).RawValue;
-			var sqrt2 = MathfloatP.Sqrt(input).RawValue;
-			Assert.AreEqual(sqrt1, sqrt2);
-			
-			var log1 = MathfloatP.Log(input).RawValue;
-			var log2 = MathfloatP.Log(input).RawValue;
-			Assert.AreEqual(log1, log2);
-			
-			var exp1 = MathfloatP.Exp(input).RawValue;
-			var exp2 = MathfloatP.Exp(input).RawValue;
-			Assert.AreEqual(exp1, exp2);
+
+			// Golden values: see Determinism_VerifyRawValues for the re-pinning rule.
+			Assert.AreEqual(1070228162u, MathfloatP.Sqrt(input).RawValue, "Sqrt");
+			Assert.AreEqual(1063948807u, MathfloatP.Log(input).RawValue, "Log");
+			Assert.AreEqual(1094904702u, MathfloatP.Exp(input).RawValue, "Exp");
 		}
 
 		[Test]
-		// ADMIT: none - the name promises cross-platform determinism; the body compares two evaluations of
-		// the same expression in one process.
-		// RCR: OWED, not exempt - D2 overclaim: no production edit can separate result1 from result2. Strengthen
-		// by asserting the expected RawValue literal, or rename to what it actually checks.
+		// ADMIT: a mixed trig/sqrt/arithmetic expression must evaluate to one fixed bit pattern; that literal
+		// is what makes the cross-platform claim testable, because a platform computing differently fails here.
+		// RCR: MathfloatP.cs Cos — `Sin(x + RawPiOver2)` → `Sin(x)` → RED (1065965998 became 1075700924).
+		// Negative result: the one-bit Sin constant change that reddens the three siblings leaves THIS test
+		// green — rounding in the wider expression absorbs it, so it needs a coarser mutation. 2026-08-04
 		public void CrossPlatform_Determinism_ComplexExpression()
 		{
-			// This test verifies that a complex expression produces the same raw value
 			var a = (floatP)1.5f;
 			var b = (floatP)2.5f;
 			var c = (floatP)3.5f;
-			
-			var result1 = MathfloatP.Sin(a) * MathfloatP.Cos(b) + MathfloatP.Sqrt(c);
-			var result2 = MathfloatP.Sin(a) * MathfloatP.Cos(b) + MathfloatP.Sqrt(c);
-			
-			Assert.AreEqual(result1.RawValue, result2.RawValue);
+
+			// Golden value: see Determinism_VerifyRawValues for the re-pinning rule.
+			Assert.AreEqual(1065965998u, (MathfloatP.Sin(a) * MathfloatP.Cos(b) + MathfloatP.Sqrt(c)).RawValue);
 		}
 
 		#endregion
