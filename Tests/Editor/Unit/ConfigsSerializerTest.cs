@@ -107,6 +107,10 @@ namespace GameLovers.GameData.Tests
 		}
 
 		[Test]
+		// ADMIT: ConfigsSerializer's Converters list must route Color through ColorJsonConverter (an RGBA hex string)
+		// and the vectors through VectorJsonConverters, not Newtonsoft reflection over Unity's derived properties.
+		// RCR: ConfigsSerializer.cs ctor — remove `new ColorJsonConverter(),` from Converters → RED (the "#FF0000FF"
+		// assertion fails; the payload carries a reflected {"r":..} object). 2026-08-04
 		public void Serialize_UnityTypes_SerializesCorrectly()
 		{
 			var config = new UnityTypesConfig
@@ -121,10 +125,10 @@ namespace GameLovers.GameData.Tests
 
 			var json = _serializer.Serialize(_provider, "1");
 
-			// Color is serialized as hex string by ColorJsonConverter
-			Assert.IsTrue(json.Contains("#FF0000FF") || json.Contains("\"Color\":"));
-			// Vectors are serialized as objects with x,y,z,w properties
-			Assert.IsTrue(json.Contains("\"x\":"));
+			// Color must ship as an RGBA hex string, not a reflected {"r":..,"g":..} object
+			Assert.IsTrue(json.Contains("#FF0000FF"));
+			// Vectors must ship through VectorJsonConverters; reflection would emit Unity's derived properties
+			Assert.IsFalse(json.Contains("\"normalized\""));
 		}
 
 		[Test]
