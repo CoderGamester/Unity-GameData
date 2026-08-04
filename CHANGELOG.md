@@ -4,27 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-**Docs**:
-- Completed this package against the host `AGENTS.md` §6.6 (`Tools/style-audit.py` reports 0 items). The `floatP` pass carries the content the signatures could not: `Equals` treats NaN as equal to NaN and both zeroes as equal — deliberately unlike `==` — so the type works as a dictionary key, while `<` and `>` return false for any NaN operand per IEEE; `ToString` formats via `float`, so precision beyond binary32 is not preserved. Also documented the validation attributes (including that `RangeAttribute` passes a null value, so it needs pairing with `RequiredAttribute`), the `ObservableUpdateType` / `ObservableUpdateFlag` enums, `ComputedTracker`'s thread-static dependency-capture stack, the observable and configs debug registries' snapshot surfaces, the `Vector*Serializable` conversions, the internal test seams (`FromSerializedNames`, `SetSelectionString`, `SetSerializedLists`), and the Config Browser's editor events. Added the missing `<summary>` to the three interface `InvokeUpdate` members that carried only `<remarks>`.
-
-- Aligned XML doc comments with the host repo's `AGENTS.md` §6.6. Removed the doc comments from the `ConfigMigrationAttribute`, `ConfigTypesBinder` and `ConfigsSerializer` constructors, from the private `floatP._raw` field, and from the private `floatP.clz` / `ObservableDebugRegistry.TryExtractMemberName` helpers (the latter two keeping their rationale as `//` comments). Folded the `<param>` tags on `DependencyGraphElement.SetTarget` and the internal `ObservableDebugRegistry.Register` into their summaries. Converted the `SerializationSecurityMode` members to inline `//` comments, promoting the serialize-only round-trip constraint to a `<remarks>` on the enum itself so the caveat stays on the consumer-visible surface. Added `/// <inheritdoc />` to the `ToString` / `Equals` / `GetHashCode` overrides on `floatP`, `Pair`, `StructPair` and `MigrationInfo`, and to all eight `WriteJson` / `ReadJson` overrides in `VectorJsonConverters`. Moved the internal `SerializableType<T>.FromSerializedNames` test seam above the private block, per §6.6's rule that `internal` is never interleaved with `private` (a pure reorder — the `OnAfterDeserializeImpl` struct-boxing pattern in §4 of this package's `AGENTS.md` is untouched).
-
-**Removed**:
-- **BREAKING** — `IConfigBackendService` (`Runtime/ConfigServices/Interfaces/`). The interface was public API but had no implementation, no consumer, and no test anywhere in the package; it was the package's only `UniTask` consumer. Anyone implementing it must remove the implementation or vendor the two-method interface locally. `UniTask` is correspondingly dropped from `Runtime/GameLovers.GameData.asmdef` and `Samples~/Migration/Migration.asmdef`.
+## [1.0.3] - 2026-08-04
 
 **Changed**:
-- `package.json` now declares `com.unity.test-framework.performance` (3.5.0). Both test asmdefs already referenced `Unity.PerformanceTesting` unconditionally, so consumers without that package installed hit a missing-assembly compile error in this package's test assemblies.
+- Added the `com.unity.test-framework.performance` (3.5.0) dependency so the package's test assemblies compile when tests are enabled.
+- Improved public API documentation and automated coverage across the data, observable, serialization, configuration, and math utilities.
 
----
-
-## [1.0.3] - 2026-05-04
-
-**New**:
-- Added new test suite for more robust code coverage
-
----
+**Removed**:
+- **BREAKING** — Removed the unused public `IConfigBackendService` interface. Consumers that implemented it must remove the implementation or vendor the two-method interface locally.
+- Removed the unused `com.cysharp.unitask` dependency from the runtime assembly and Migration sample.
 
 ## [1.0.2] - 2026-04-26
 
