@@ -225,7 +225,9 @@ namespace GameLovers.GameData
 			return value;
 		}
 
-		/// <summary>Resolves a type by name across the loaded assemblies, returning null when nothing matches.</summary>
+		/// <summary>
+		/// Resolves a type by name across the loaded assemblies, returning null when nothing matches.
+		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static Type GetTypeFromString(in string fullTypeName)
 		{

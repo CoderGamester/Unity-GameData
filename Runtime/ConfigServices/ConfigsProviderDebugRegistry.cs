@@ -18,7 +18,9 @@ namespace GameLovers.GameData
 	public static class ConfigsProviderDebugRegistry
 	{
 #if UNITY_EDITOR
-		/// <summary>Identity and creation site of a tracked configs provider. Editor introspection only — see AGENTS.md §4.</summary>
+		/// <summary>
+		/// Identity and creation site of a tracked configs provider. Editor introspection only — see AGENTS.md §4.
+		/// </summary>
 		internal readonly struct ProviderDebugInfo
 		{
 			public readonly int Id;

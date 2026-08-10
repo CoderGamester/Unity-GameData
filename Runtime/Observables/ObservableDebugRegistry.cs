@@ -33,7 +33,9 @@ namespace GameLovers.GameData
 	public static class ObservableDebugRegistry
 	{
 #if UNITY_EDITOR
-		/// <summary>Identity and creation site of a tracked observable. Editor introspection only — see AGENTS.md §4.</summary>
+		/// <summary>
+		/// Identity and creation site of a tracked observable. Editor introspection only — see AGENTS.md §4.
+		/// </summary>
 		internal readonly struct ObservableDebugInfo
 		{
 			public readonly int Id;
@@ -271,4 +273,3 @@ namespace GameLovers.GameData
 #endif
 	}
 }
-
