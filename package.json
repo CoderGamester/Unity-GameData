@@ -5,7 +5,7 @@
   "version": "1.0.3",
   "unity": "6000.0",
   "license": "MIT",
-  "description": "Core data utilities and configuration management for Unity games. Includes observable data types (fields, lists, dictionaries), deterministic floats (floatP), serialization helpers, type-safe config storage, versioning, and backend sync support.",
+  "description": "Core game-data utilities: typed configuration storage, observable values and collections, deterministic floatP math, serialization helpers, versioning, and editor tools.",
   "type": "library",
   "hideInEditor": false,
   "dependencies": {

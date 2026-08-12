@@ -1,5 +1,7 @@
 # Designer Workflow Sample
 
+> **Unity compatibility:** Minimum Unity version `6000.0`; reference streams are `6000.0.x`, `6000.3.x`, and `6000.5.x`. GameData is pipeline-neutral. See the [package compatibility matrix](../../README.md#unity-compatibility).
+
 This sample demonstrates how game designers can author configuration data using **ScriptableObjects** in the Unity Editor, which are then loaded into the runtime `ConfigsProvider` system.
 
 ## Design Philosophy

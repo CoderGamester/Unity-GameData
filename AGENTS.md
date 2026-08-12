@@ -4,7 +4,7 @@
 
 ## 1. Package Overview
 - **Package**: `com.gamelovers.gamedata`
-- **Unity**: 6000.0+ (Unity 6)
+- **Unity**: minimum 6000.0; compatibility reference streams 6000.0.x, 6000.3.x, and 6000.5.x. Reference editors: 6000.0.81f1, 6000.3.21f1, 6000.5.7f1 (primary). Do not call a stream validated without current matrix artifacts.
 - **Runtime asmdef**: `Runtime/GameLovers.GameData.asmdef` (**allowUnsafeCode = true**)
 - **Dependencies**
   - `com.unity.nuget.newtonsoft-json` (3.2.1): runtime JSON serializer + editor tools/tests

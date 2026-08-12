@@ -1,5 +1,7 @@
 # Schema Migration Sample
 
+> **Unity compatibility:** Minimum Unity version `6000.0`; reference streams are `6000.0.x`, `6000.3.x`, and `6000.5.x`. GameData is pipeline-neutral. See the [package compatibility matrix](../../README.md#unity-compatibility).
+
 This sample demonstrates the real developer workflow for migrating configuration schemas using the **Config Browser** and the `MigrationRunner` API.
 
 ## Design Philosophy
