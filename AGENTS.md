@@ -1,114 +1,43 @@
-# GameLovers.GameData - AI Agent Guide
+# GameLovers GameData — Agent Guide
 
-> **Companion files**: `CLAUDE.md` wraps this file for Claude Code — edit `AGENTS.md`, not `CLAUDE.md`. `README.md` is the user-facing entry point.
+This guide adds package-specific rules to the host repository guide. Consumer usage belongs in `README.md`.
 
-## 1. Package Overview
-- **Package**: `com.gamelovers.gamedata`
-- **Unity**: minimum 6000.0; compatibility reference streams 6000.0.x, 6000.3.x, and 6000.5.x. Reference editors: 6000.0.81f1, 6000.3.21f1, 6000.5.7f1 (primary). Do not call a stream validated without current matrix artifacts.
-- **Runtime asmdef**: `Runtime/GameLovers.GameData.asmdef` (**allowUnsafeCode = true**)
-- **Dependencies**
-  - `com.unity.nuget.newtonsoft-json` (3.2.1): runtime JSON serializer + editor tools/tests
-  - `com.unity.textmeshpro` (3.0.6): used by **Samples~** UI scripts (`using TMPro;`)
+## Scope
 
-This file is for **agents/contributors**. User-facing usage lives in `README.md`.
+- Package: `com.gamelovers.gamedata`; minimum Unity version and dependencies are authoritative in `package.json`.
+- Runtime assembly: `Runtime/GameLovers.GameData.asmdef` with unsafe code enabled.
+- Main areas: configuration storage/serialization, observables, deterministic `floatP` math, serialization helpers, and UI Toolkit editor tools.
+- This package is render-pipeline-neutral. Do not add URP, HDRP, or Built-in rendering dependencies.
 
-## 2. What the package provides (map)
-- **Configs**: `ConfigsProvider`, `ConfigsSerializer`, `ConfigsScriptableObject` (`Runtime/ConfigServices/*`)
-- **Observables**: field/list/dictionary/computed + resolver variants (`Runtime/Observables/*`)
-- **Deterministic math**: `floatP`, `MathfloatP` (`Runtime/Math/*`)
-- **Serialization helpers**: `UnitySerializedDictionary`, `SerializableType<T>`, JSON converters (`Runtime/Serialization/*`)
-- **Editor tooling (UI Toolkit)**: Config Browser, Observable Debugger, inspectors, migrations (`Editor/*`)
+## Runtime invariants
 
-## 3. Key entry points (common navigation)
-- **Configs**: `Runtime/ConfigServices/ConfigsProvider.cs`, `Runtime/ConfigServices/ConfigsSerializer.cs`
-- **Security**: `Runtime/ConfigServices/ConfigTypesBinder.cs` (whitelist binder for safe deserialization)
-- **Interfaces**: `Runtime/ConfigServices/Interfaces/*` (notably `IConfigsProvider`, `IConfigsAdder`)
-- **ScriptableObject containers**: `Runtime/ConfigServices/ConfigsScriptableObject.cs` (+ `Interfaces/IConfigsContainer.cs`)
-- **Editor windows**: `Editor/Windows/ConfigBrowserWindow.cs`, `Editor/Windows/ObservableDebugWindow.cs`
-- **Migrations**: `Editor/Migration/*` (`MigrationRunner`, `IConfigMigration`, preview helpers)
-- **Inspector/UI Toolkit elements**: `Editor/Inspectors/*`, `Editor/Elements/*`
-- **Observable core types**: `Runtime/Observables/ObservableField.cs`, `ObservableList.cs`, `ObservableDictionary.cs`, `ComputedField.cs`
-- **Deterministic math**: `Runtime/Math/floatP.cs`, `Runtime/Math/MathfloatP.cs`
-- **Serialization helpers**: `Runtime/Serialization/*` (Unity dict, type serialization, converters)
-- **Tests**: `Tests/Editor/*` (Unit/Integration/Security/Performance/Smoke/Boundary)
+- `ConfigsProvider` stores one role per config type. A type may be registered as a singleton or as an id-keyed collection, never both. Duplicate registrations and duplicate ids throw.
+- Use `GetConfig<T>()` only for singleton configs and `GetConfig<T>(id)` for keyed configs. Missing containers are errors, not default-value lookups.
+- Config versions are `ulong`; invalid serialized version strings deserialize as `0`.
+- `ConfigsSerializer(TrustedOnly)` uses `ConfigTypesBinder` as an explicit type whitelist. Preserve the whitelist and `MaxDepth` protections when changing serialization. `Secure` mode disables type metadata and is not a round-trip mode.
+- Trusted-only serialization auto-registers encountered types during `Serialize()` and supports explicit pre-registration through `RegisterAllowedTypes()`. Deserialization must never widen the binder implicitly from untrusted payload content.
+- `ConfigsScriptableObject` keys must remain unique after deserialization.
+- `ObservableDictionary` update flags determine key-specific versus global notification fan-out. Preserve subscription order and avoid allocations in observable hot paths.
+- Operations targeting a specific observable key generally assume the key exists and may throw. Do not silently convert those contracts into default-value behavior.
+- `EnumSelector<T>` may retain a serialized name that no longer exists after an enum rename. Consumers and tests use `HasValidSelection` before trusting the selected value.
+- `SerializableType<T>.OnAfterDeserializeImpl()` exists to avoid mutating a boxed struct through `ISerializationCallbackReceiver`. Do not fold the implementation back into the explicit interface method.
+- `Runtime/link.xml` protects serialization code from stripping. Treat reflection additions as IL2CPP/AOT work and add relevant tests.
 
-## 4. Important behaviors / gotchas (keep in sync with code)
-- **Singleton vs id-keyed**: `GetConfig<T>()` only for singleton; use `GetConfig<T>(int)` for id-keyed.
-- **Duplicate keys throw**: `AddSingletonConfig<T>()` / `AddConfigs<T>()` throw on duplicate ids.
-- **One role per type**: `ConfigsProvider._configs` is a `Dictionary<Type, IEnumerable>`. A type `T` can be registered EITHER as a singleton (`AddSingletonConfig<T>`) OR as a keyed collection (`AddConfigs<T>`), never both. Calling the second after the first raises `ArgumentException` from `Dictionary.Add`. When a test or caller genuinely needs both singleton-shaped and collection-shaped validation on the same schema, declare two sibling types (see `MockValidatableConfig` / `MockValidatableConfigAlt` in the test fixtures).
-- **Missing container throws**: `GetConfigsDictionary<T>()` assumes `T` was added.
-- **Versioning is `ulong`**: `ConfigsSerializer.Deserialize` parses `Version` with `ulong.TryParse`; non-numeric strings become `0`.
-- **Security** (see `ConfigsSerializer`, `ConfigTypesBinder`):
-  - `ConfigsSerializer(TrustedOnly)` uses `TypeNameHandling.Auto` with a `ConfigTypesBinder` whitelist.
-  - Types are auto-registered during `Serialize()` and can be pre-registered via `RegisterAllowedTypes()`.
-  - `ConfigTypesBinder` blocks any type not explicitly whitelisted, preventing type injection attacks.
-  - `ConfigsSerializer(Secure)` disables `TypeNameHandling` entirely (serialize-only, cannot round-trip).
-  - `MaxDepth` (default: 128) prevents stack overflow from deeply nested JSON.
-- **Editor-only registries**: `ConfigsProvider` registers in editor builds (used by Config Browser).
-- **ConfigsScriptableObject keys must be unique**: duplicate keys throw during `OnAfterDeserialize()`.
-- **ObservableDictionary update flags**: update flags change which subscribers are notified (key-only vs global vs both).
-- **Missing key calls can throw**: methods that target a specific key generally assume the key exists.
-- **EnumSelector stability**: check validity (`HasValidSelection`) if enums were changed/renamed.
-- **`SerializableType<T>` struct-boxing pattern**: `OnAfterDeserialize` body lives in private `OnAfterDeserializeImpl()`; the explicit `ISerializationCallbackReceiver.OnAfterDeserialize()` delegates to it. Reason: calling `((ISerializationCallbackReceiver)structInstance).OnAfterDeserialize()` boxes the struct, and any mutation to `_value` happens on the box — invisible to the caller. The test factory `FromSerializedNames` mutates `this` in-place via `OnAfterDeserializeImpl()` to dodge this. Do **not** collapse `OnAfterDeserializeImpl` back into the interface implementation.
-- **No manual `.meta` edits**: Unity owns `*.meta` generation.
+## Editor and test boundaries
 
-## 5. Editor tools (menu paths)
-- **Config Browser**: `Tools > GameLovers > Game Data > Config Browser` (browse/validate/export/migrations)
-- **Observable Debugger**: `Tools > GameLovers > Game Data > Observable Debugger` (inspect live observables)
-- **Config migrations**: shown inside Config Browser when migrations exist
+- Editor tooling stays under `Editor/`; runtime code must not reference `UnityEditor`.
+- Internal test seams are exposed through `InternalsVisibleTo`. Prefer `EnumSelector<T>.SetSelectionString` for stale enum names, `SerializableType<T>.FromSerializedNames` for Unity deserialization order, and `UnitySerializedDictionary.SetSerializedLists` plus its read-only internal list accessors over private reflection.
+- Resolver field behavior is intentionally tested alongside `ObservableField<T>` in `ObservableFieldTest`; resolver list and dictionary types have dedicated fixtures. Grep before adding apparent “missing” resolver coverage.
+- Before changing anything under `Tests/`, read `Tests/AGENTS.md`.
 
-## 6. Tests (how to run / where to add)
-- Before reading, editing, or creating any file in `Tests/`, you **MUST** read [`Tests/AGENTS.md`](Tests/AGENTS.md) first.
-- **EditMode** tests: Unity Test Runner → EditMode (tests live under `Tests/Editor/*`)
-  - `Unit/` for pure logic (preferred)
-  - `Integration/` for editor/tooling interactions
-  - `Security/` for serializer safety expectations
-  - `Performance/` only when measuring allocations/hot paths
-- **PlayMode** tests: Unity Test Runner → PlayMode (tests live under `Tests/PlayMode/*`) — use for tests that require a running scene or Unity coroutine/frame timing
-- **Internal test seams** (`Runtime/AssemblyInfo.cs` declares `[InternalsVisibleTo("GameLovers.GameData.Editor.Tests")]`): use these instead of `BindingFlags.NonPublic` reflection on private fields.
-  - `EnumSelector<T>.SetSelectionString(string)` — simulates a stale serialized enum-name string that the public `SetSelection(T)` API can't reach (since `T` is constrained to valid enum members).
-  - `SerializableType<T>.FromSerializedNames(className, assemblyName)` — static factory that simulates Unity's deserialization order (private serialized fields populated, then `OnAfterDeserializeImpl` resolves) without reflection or struct-boxing dance.
-  - `UnitySerializedDictionary<TKey,TValue>.SetSerializedLists(List<TKey>, List<TValue>)` + read-only `KeyDataInternal` / `ValueDataInternal` — read/write the YAML-serializer-populated backing lists.
-- **`ConfigsProvider.AddAllConfigs` / `UpdateTo` test signature**: both take `IReadOnlyDictionary<Type, IEnumerable>` requiring **non-generic** `System.Collections.IEnumerable`. When the test file imports `System.Collections.Generic`, fully-qualify `System.Collections.IEnumerable` to avoid resolution clash with `IEnumerable<T>` (existing `UpdateTo_*` test in `ConfigsProviderTest.cs` demonstrates this).
-- **Dual-fixture pattern for resolver/derived observable types**: `ObservableResolverField<T>` (and any future resolver/derived types that override `ObservableField<T>`'s public surface) are tested jointly with their base class via paired `[SetUp]` fields in `ObservableFieldTest.cs` (e.g. `_observableField` + `_observableResolverField`), NOT in dedicated `*ResolverFieldTest.cs` files. Most `[Test]` methods exercise both fields with a single assertion pair — see `ValueCheck` / `ValueSetCheck` / `ObserveCheck` / `RebindCheck_KeepsObservers`. Before proposing or accepting new tests for the resolver class as "missing coverage", grep test bodies for `_observableResolverField` and `ObservableResolverField<` references in `Tests/Editor/Unit/`; covered behavior shouldn't get a duplicate dedicated test file. (Coverage audits — including LLM-driven ones like `unity-tests-audit` — have produced false-positive duplicate stubs against this pattern.)
+## Samples and dependencies
 
-## 7. Common change workflows
-- **Add config type**: `[Serializable]` (or `[IgnoreServerSerialization]`), decide singleton vs id-keyed, add tests.
-- **Change serialization**: update `ConfigsSerializer` + converters; adjust `Security/*` tests.
-- **Change observables**: keep hot paths allocation-free; test subscribe/unsubscribe and update ordering.
-- **Editor UX**: keep editor-only code under `Editor/` and avoid runtime `UnityEditor` refs.
+- Samples live under `Samples~/`; their authoritative list is `package.json`.
+- Sample UI code depends on TextMeshPro. Validate sample compilation after changes affecting public APIs or dependencies.
+- Prefer local dependency sources under `Library/PackageCache/`, including Newtonsoft.Json and TextMeshPro.
 
-## 8. Samples (maintenance rule)
-- Package samples live in `Samples~/...`.
-- In the **host Unity project**, imported samples live under `Assets/Samples/...` and should be edited there when validating sample behavior.
-- Current sample set (see `package.json`): Reactive UI Demo (uGUI), Reactive UI Demo (UI Toolkit), Designer Workflow, Migration.
+## Verification and documentation
 
-## 9. Release checklist (docs + versioning)
-- Bump `package.json` version
-- Update `CHANGELOG.md` (include upgrade notes when breaking)
-- Ensure samples compile (TextMeshPro is required by sample scripts)
-- Run EditMode tests
-- Update `README.md` if public API / behavior changed
-
-## 10. External package sources (preferred for API lookups)
-- Newtonsoft: `Library/PackageCache/com.unity.nuget.newtonsoft-json/`
-- TextMeshPro: `Library/PackageCache/com.unity.textmeshpro/`
-
-## 11. Coding standards / assembly boundaries
-- **C#**: C# 9.0 syntax; explicit namespaces; no global usings.
-- **Runtime vs Editor**: runtime code must not reference `UnityEditor`; editor tooling stays under `Editor/`.
-- **Performance**: avoid allocations in observable hot paths; prefer tests for allocation regressions when changing core types.
-
-## 12. IL2CPP / AOT / stripping
-- `Runtime/link.xml` exists to prevent stripping of core serialization logic.
-- Keep `SerializableType<T>` and serializer-related reflection IL2CPP-safe; avoid adding reflection-heavy APIs without tests.
-
-## 13. When to update docs
-- Update `AGENTS.md` when behavior/entry points change (configs, serializer security, observables, editor tools, tests layout).
-- Update `README.md` when public API/usage changes (installation, examples, requirements).
-- Update `CHANGELOG.md` for notable changes, especially breaking upgrades.
-
-## 14. Quick verification (before shipping changes)
-- Run **EditMode** tests and ensure no new warnings/errors.
-- Import samples once in a host project and confirm they compile (TextMeshPro).
-- If touching serialization, check `Tests/Editor/Security/*` and confirm untrusted payload expectations still hold.
+- Serialization changes require unit and security coverage; observable changes require subscribe/unsubscribe, ordering, and allocation checks where relevant.
+- Update `README.md` for consumer-facing API or setup changes and `CHANGELOG.md` for notable behavior changes.
+- Update this guide only when a durable package invariant, assembly boundary, or test convention changes.
