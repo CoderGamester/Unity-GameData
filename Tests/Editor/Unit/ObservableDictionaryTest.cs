@@ -195,7 +195,7 @@ namespace GameLovers.GameData.Tests
 		// ADMIT: ObservableDictionary<TKey,TValue>.Remove must pass the removed value as the *previous* argument to
 		// key observers.
 		// RCR: ObservableDictionary.cs Remove — in the `_keyUpdateActions` loop change
-		// `action(key, value, default, Removed)` to `action(key, default, default, Removed)` → RED (the expected
+		// `action(key, value, default, ObservableUpdateType.Removed)` to `action(key, default, default, Removed)` → RED (the expected
 		// Call(_key, newValue, 0, Removed) is never received). 2026-08-02
 		public void ObserveCheck()
 		{

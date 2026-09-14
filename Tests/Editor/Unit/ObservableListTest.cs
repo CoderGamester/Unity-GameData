@@ -62,7 +62,7 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		// ADMIT: ObservableList<T>.RemoveAt must pass the removed element as the *previous* argument of the Removed
 		// callback.
-		// RCR: ObservableList.cs RemoveAt — change `action(index, data, default, Removed)` to
+		// RCR: ObservableList.cs RemoveAt — change `action(index, data, default, ObservableUpdateType.Removed)` to
 		// `action(index, default, default, Removed)` → RED (Call(_index,_newValue,0,Removed) never received). Also
 		// reddens StopObserve_WhenCalledOnce_RemovesOnlyOneObserverInstance. 2026-08-02
 		public void ObserveCheck()
@@ -237,7 +237,7 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		// ADMIT: ObservableList<T>.Clear must report each element as the Removed callback's *previous* value before
 		// emptying the list.
-		// RCR: ObservableList.cs Clear — change `copy[i](j, List[j], default, Removed)` to
+		// RCR: ObservableList.cs Clear — change `copy[i](j, List[j], default, ObservableUpdateType.Removed)` to
 		// `copy[i](j, default, default, Removed)` → RED (Call(0,1,0,Removed) is never received). 2026-08-02
 		public void Clear_NotifiesForEachItem()
 		{

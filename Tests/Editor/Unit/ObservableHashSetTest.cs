@@ -31,7 +31,7 @@ namespace GameLovers.GameData.Tests
 
 		[Test]
 		// ADMIT: ObservableHashSet<T>.Add must notify with ObservableUpdateType.Added, not another update type.
-		// RCR: ObservableHashSet.cs Add — change `InvokeUpdate(item, Added)` to `Updated` → RED (Received(1)(1,
+		// RCR: ObservableHashSet.cs Add — change `InvokeUpdate(item, ObservableUpdateType.Added)` to `Updated` → RED (Received(1)(1,
 		// Added) sees zero calls). 2026-08-02
 		public void Add_NewItem_NotifiesAdded()
 		{
@@ -76,7 +76,7 @@ namespace GameLovers.GameData.Tests
 
 		[Test]
 		// ADMIT: ObservableHashSet<T>.Remove must notify with ObservableUpdateType.Removed.
-		// RCR: ObservableHashSet.cs Remove — change `InvokeUpdate(item, Removed)` to `Updated` → RED (Received(1)(1,
+		// RCR: ObservableHashSet.cs Remove — change `InvokeUpdate(item, ObservableUpdateType.Removed)` to `Updated` → RED (Received(1)(1,
 		// Removed) sees zero calls). 2026-08-02
 		public void Remove_ExistingItem_NotifiesRemoved()
 		{
@@ -128,7 +128,7 @@ namespace GameLovers.GameData.Tests
 		[Test]
 		// ADMIT: ObservableHashSet<T>.Clear must emit ObservableUpdateType.Removed for every member before wiping
 		// the set.
-		// RCR: ObservableHashSet.cs Clear — change `action(item, Removed)` to `action(item, Updated)` → RED
+		// RCR: ObservableHashSet.cs Clear — change `action(item, ObservableUpdateType.Removed)` to `action(item, Updated)` → RED
 		// (Received(1)(1, Removed) sees zero calls). 2026-08-02
 		public void Clear_NotifiesRemovedForEachItem()
 		{
