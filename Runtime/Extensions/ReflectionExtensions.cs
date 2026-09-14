@@ -24,13 +24,13 @@ namespace GameLovers.GameData
 
 		private const BindingFlags PrivateBindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
 
-		private static readonly Dictionary<Type, Dictionary<int, FieldInfo?>> FieldsByNameFromType = new();
+		private static readonly Dictionary<Type, Dictionary<int, FieldInfo?>> _fieldsByNameFromType = new();
 
-		private static readonly Dictionary<Type, Dictionary<int, MethodInfo?>> MethodsByNameFromType = new();
+		private static readonly Dictionary<Type, Dictionary<int, MethodInfo?>> _methodsByNameFromType = new();
 
-		private static readonly Dictionary<Type, Dictionary<int, MethodInfo?>> MethodsBySignatureFromType = new();
+		private static readonly Dictionary<Type, Dictionary<int, MethodInfo?>> _methodsBySignatureFromType = new();
 
-		private static readonly Dictionary<Type, Dictionary<int, MethodInfo?>> SetterByNameFromType = new();
+		private static readonly Dictionary<Type, Dictionary<int, MethodInfo?>> _setterByNameFromType = new();
 
 		/// <summary>
 		/// Create an instance of the given type by using either the <see cref="Activator"/> class or by any parameterless constructor on it.
@@ -55,10 +55,10 @@ namespace GameLovers.GameData
 		{
 			int hash = name.GetHashCode();
 
-			if (!FieldsByNameFromType.TryGetValue(type, out Dictionary<int, FieldInfo?> fields))
+			if (!_fieldsByNameFromType.TryGetValue(type, out Dictionary<int, FieldInfo?> fields))
 			{
 				fields = new Dictionary<int, FieldInfo?>();
-				FieldsByNameFromType.Add(type, fields);
+				_fieldsByNameFromType.Add(type, fields);
 			}
 			else if (fields.TryGetValue(hash, out FieldInfo? result))
 			{
@@ -97,10 +97,10 @@ namespace GameLovers.GameData
 		{
 			int hash = name.GetHashCode();
 
-			if (!MethodsByNameFromType.TryGetValue(type, out Dictionary<int, MethodInfo?> methods))
+			if (!_methodsByNameFromType.TryGetValue(type, out Dictionary<int, MethodInfo?> methods))
 			{
 				methods = new Dictionary<int, MethodInfo?>();
-				MethodsByNameFromType.Add(type, methods);
+				_methodsByNameFromType.Add(type, methods);
 			}
 			else if (methods.TryGetValue(hash, out MethodInfo? result))
 			{
@@ -139,10 +139,10 @@ namespace GameLovers.GameData
 		{
 			int hash = GetSignature(name, parameters).GetHashCode();
 
-			if (!MethodsBySignatureFromType.TryGetValue(type, out Dictionary<int, MethodInfo?> methods))
+			if (!_methodsBySignatureFromType.TryGetValue(type, out Dictionary<int, MethodInfo?> methods))
 			{
 				methods = new Dictionary<int, MethodInfo?>();
-				MethodsBySignatureFromType.Add(type, methods);
+				_methodsBySignatureFromType.Add(type, methods);
 			}
 			else if (methods.TryGetValue(hash, out MethodInfo? result))
 			{
@@ -181,10 +181,10 @@ namespace GameLovers.GameData
 		{
 			int hash = name.GetHashCode();
 
-			if (!SetterByNameFromType.TryGetValue(type, out Dictionary<int, MethodInfo?> methods))
+			if (!_setterByNameFromType.TryGetValue(type, out Dictionary<int, MethodInfo?> methods))
 			{
 				methods = new Dictionary<int, MethodInfo?>();
-				SetterByNameFromType.Add(type, methods);
+				_setterByNameFromType.Add(type, methods);
 			}
 			else if (methods.TryGetValue(hash, out MethodInfo? result))
 			{

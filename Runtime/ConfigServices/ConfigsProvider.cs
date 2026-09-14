@@ -7,7 +7,7 @@ namespace GameLovers.GameData
 	/// <inheritdoc />
 	public class ConfigsProvider : IConfigsAdder
 	{
-		private const int _singleConfigId = 0;
+		private const int SingleConfigId = 0;
 		private ulong _version;
 
 		/// <summary>Version parsed from the deserialized payload; 0 when it was absent or non-numeric.</summary>
@@ -38,7 +38,7 @@ namespace GameLovers.GameData
 				return false;
 			}
 
-			return enumerable is IReadOnlyDictionary<int, T> dictionary && dictionary.TryGetValue(_singleConfigId, out config);
+			return enumerable is IReadOnlyDictionary<int, T> dictionary && dictionary.TryGetValue(SingleConfigId, out config);
 		}
 
 		/// <inheritdoc />
@@ -86,7 +86,7 @@ namespace GameLovers.GameData
 		/// <inheritdoc />
 		public void AddSingletonConfig<T>(T config)
 		{
-			_configs.Add(typeof(T), new Dictionary<int, T> {{ _singleConfigId, config }});
+			_configs.Add(typeof(T), new Dictionary<int, T> {{ SingleConfigId, config }});
 		}
 
 		/// <inheritdoc />

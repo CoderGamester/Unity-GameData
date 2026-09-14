@@ -19,7 +19,7 @@ namespace GameLovers.GameData
 	/// <author>Bruno Coimbra, https://github.com/coimbrastudios/framework/blob/master/Coimbra/Utilities/</author>
 	public static class ObjectExtensions
 	{
-		private static readonly Dictionary<Type, string> Cache = new();
+		private static readonly Dictionary<Type, string> _cache = new();
 		private const string PersistentSceneName = "DontDestroyOnLoad";
 
 		/// <summary>
@@ -180,7 +180,7 @@ namespace GameLovers.GameData
 		/// </summary>
 		public static string GetDisplayString(this Type type)
 		{
-			if (Cache.TryGetValue(type, out string value))
+			if (_cache.TryGetValue(type, out string value))
 			{
 				return value;
 			}
@@ -220,7 +220,7 @@ namespace GameLovers.GameData
 
 			value = stringBuilder.ToString();
 
-			Cache.Add(type, value);
+			_cache.Add(type, value);
 
 			return value;
 		}

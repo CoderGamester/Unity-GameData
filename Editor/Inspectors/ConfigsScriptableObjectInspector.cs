@@ -20,10 +20,10 @@ namespace GameLovers.GameData.Editor
 		private const string ConfigsFieldName = "_configs";
 		private const BindingFlags InstanceFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-		private static readonly Color ColorOk = new Color(0.25f, 0.6f, 0.3f);
-		private static readonly Color ColorWarning = new Color(0.7f, 0.55f, 0.15f);
-		private static readonly Color ColorError = new Color(0.8f, 0.25f, 0.25f);
-		private static readonly Color ColorBorder = new Color(0.2f, 0.2f, 0.2f, 0.5f);
+		private static readonly Color _colorOk = new Color(0.25f, 0.6f, 0.3f);
+		private static readonly Color _colorWarning = new Color(0.7f, 0.55f, 0.15f);
+		private static readonly Color _colorError = new Color(0.8f, 0.25f, 0.25f);
+		private static readonly Color _colorBorder = new Color(0.2f, 0.2f, 0.2f, 0.5f);
 
 		private readonly Dictionary<int, EntryStatus> _statusByIndex = new Dictionary<int, EntryStatus>();
 		private readonly HashSet<object> _seenKeys = new HashSet<object>();
@@ -105,7 +105,7 @@ namespace GameLovers.GameData.Editor
 			var row = CreateFlexRow();
 			row.style.paddingLeft = row.style.paddingRight = row.style.paddingTop = row.style.paddingBottom = 4;
 			row.style.borderBottomWidth = 1;
-			row.style.borderBottomColor = ColorBorder;
+			row.style.borderBottomColor = _colorBorder;
 
 			var keyField = new PropertyField { name = "KeyField" };
 			SetFixedWidth(keyField, 120);
@@ -255,7 +255,7 @@ namespace GameLovers.GameData.Editor
 
 			_entriesLabel.text = $"Entries: {configsProp.arraySize}";
 			_statsLabel.text = $"Errors: {errorCount} | Duplicates: {duplicateCount}";
-			_statusIndicator.style.backgroundColor = (errorCount > 0 || duplicateCount > 0) ? ColorError : ColorOk;
+			_statusIndicator.style.backgroundColor = (errorCount > 0 || duplicateCount > 0) ? _colorError : _colorOk;
 
 			_listView.itemsSource = CreateIndexSource(configsProp.arraySize);
 			_listView.RefreshItems();
@@ -328,9 +328,9 @@ namespace GameLovers.GameData.Editor
 
 		private static StyleColor GetStatusColor(StatusLevel level) => level switch
 		{
-			StatusLevel.Ok => new StyleColor(ColorOk),
-			StatusLevel.Warning => new StyleColor(ColorWarning),
-			StatusLevel.Error => new StyleColor(ColorError),
+			StatusLevel.Ok => new StyleColor(_colorOk),
+			StatusLevel.Warning => new StyleColor(_colorWarning),
+			StatusLevel.Error => new StyleColor(_colorError),
 			_ => StyleKeyword.Null
 		};
 

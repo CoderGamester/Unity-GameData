@@ -919,7 +919,7 @@ namespace GameLovers.GameData
 			return new floatP(ieeeRaw);
 		}
 
-		private static readonly uint[] debruijn32 = new uint[32]
+		private static readonly uint[] _debruijn32 = new uint[32]
 		{
 		0, 31, 9, 30, 3, 8, 13, 29, 2, 5, 7, 21, 12, 24, 28, 19,
 		1, 10, 4, 14, 6, 22, 25, 20, 11, 15, 23, 26, 16, 27, 17, 18
@@ -940,7 +940,7 @@ namespace GameLovers.GameData
 			x |= x >> 16;
 			x++;
 
-			return debruijn32[x * 0x076be629 >> 27];
+			return _debruijn32[x * 0x076be629 >> 27];
 		}
 
 		private static floatP InternalAdd(floatP f1, floatP f2)
@@ -994,16 +994,16 @@ namespace GameLovers.GameData
 					return Zero;
 				}
 
-				uint msb = absMan >> MantissaBits;
+				uint _msb = absMan >> MantissaBits;
 				int rawExp = rawExp1 - 6;
-				while (msb == 0)
+				while (_msb == 0)
 				{
 					rawExp -= 8;
 					absMan <<= 8;
-					msb = absMan >> MantissaBits;
+					_msb = absMan >> MantissaBits;
 				}
 
-				int msbIndex = BitScanReverse8(msb);
+				int msbIndex = BitScanReverse8(_msb);
 				rawExp += msbIndex;
 				absMan >>= msbIndex;
 				if ((uint)(rawExp - 1) < 254)
@@ -1043,7 +1043,7 @@ namespace GameLovers.GameData
 			}
 		}
 
-		private static readonly sbyte[] msb = new sbyte[256]
+		private static readonly sbyte[] _msb = new sbyte[256]
 		{
 			-1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
 			5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
@@ -1056,7 +1056,7 @@ namespace GameLovers.GameData
 		};
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static int BitScanReverse8(uint b) => msb[b];
+		private static int BitScanReverse8(uint b) => _msb[b];
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static unsafe uint ReinterpretFloatToInt32(float f) => *(uint*)&f;
